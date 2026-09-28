@@ -1,0 +1,32 @@
+# Core
+fastapi[standard]==0.141.1
+uvicorn==0.35.0
+
+# Database
+sqlalchemy==2.0.41
+asyncpg==0.30.0
+alembic==1.16.4
+
+# Auth
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+
+# Background tasks / queue
+arq==0.26.3
+
+# Redis
+redis==5.2.1
+
+# Geo + UA parsing
+geoip2==5.1.0
+user-agents==2.2.0
+
+# Slug generation
+nanoid==2.0.0
+
+# HTTP client
+httpx==0.28.1
+
+# Testing
+pytest==8.3.5
+pytest-asyncio==0.24.0

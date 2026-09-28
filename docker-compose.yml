@@ -1,0 +1,21 @@
+services:
+  postgres:
+    container_name: ct-postgres
+    image: 'postgres:18'
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=cliqtracker
+    volumes:
+      - ct-postgres-data:/var/lib/postgresql
+
+  redis:
+    container_name: ct-redis
+    image: 'redis:8'
+    ports:
+      - 6379:6379
+
+volumes:
+  ct-postgres-data:
