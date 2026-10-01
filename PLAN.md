@@ -79,3 +79,30 @@ FastAPI backend for Cliqtracker. Covers auth, link CRUD, Redis-cached redirects,
 - CORS — dev origins only
 - Deploy to Railway
 - `.env.example` + API docs in README
+
+
+---
+
+## 6. Teams & Projects (Future)
+
+**Goal:** Multi-tenancy — users can create projects, invite members, and manage links per project.
+
+**Design decisions:**
+- `role` does not belong on the `users` table — it's context-dependent per project
+- Many-to-many between users and projects, with `role` on the join
+- Three tables: `projects`, `project_members` (join: `user_id`, `project_id`, `role`)
+- Links belong to a project, not directly to a user
+
+**Tables needed:**
+- `projects` — `id`, `name`, `owner_id`, `created_on`
+- `project_members` — `project_id`, `user_id`, `role` (`owner` | `admin` | `member`), `joined_on`
+
+**Impact on existing tables:**
+- `links` — add `project_id` FK (currently owned by user directly)
+- Auth middleware — resolve current project from request context
+
+**Tasks:** (to be expanded when this phase starts)
+- Alembic migrations for `projects` + `project_members`
+- Project CRUD endpoints
+- Invite flow
+- Role-based access on link endpoints
