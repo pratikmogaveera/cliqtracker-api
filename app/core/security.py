@@ -33,9 +33,9 @@ def create_jwt_token(sub: str) -> str:
   )
 
 
-def authenticate_jwt(raw_token: str) -> str:
+def authenticate_jwt(token: str) -> str:
   payload = jwt.decode(
-    raw_token,
+    token,
     key=settings.JWT_SECRET,
     algorithms=[settings.JWT_ALGORITHM],
   )
