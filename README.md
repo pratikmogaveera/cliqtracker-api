@@ -44,23 +44,25 @@ API at `http://localhost:8000` — interactive docs at `/docs`.
 ```
 cliqtracker-api/
 ├── app/
-│   ├── main.py
+│   ├── main.py                   — app factory, lifespan, exception handler
+│   ├── deps.py                   — get_user_id dependency
 │   ├── core/
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── redis.py
-│   │   └── security.py
+│   │   ├── config.py             — pydantic-settings config
+│   │   ├── database.py           — async engine, session factory, get_db
+│   │   ├── redis.py              — get_redis dependency
+│   │   └── security.py           — password hashing, JWT encode/decode
 │   ├── models/
+│   │   └── user.py               — User ORM model
 │   ├── schemas/
+│   │   ├── common.py             — ApiResponse generic wrapper
+│   │   └── user.py               — request/response schemas
 │   ├── routers/
-│   │   ├── auth.py
-│   │   ├── links.py
-│   │   ├── redirect.py
-│   │   └── analytics.py
-│   ├── services/
-│   ├── deps.py
-│   └── worker.py
-├── alembic/
+│   │   ├── auth.py               — login, refresh, logout
+│   │   └── user.py               — register, me, update, delete
+│   └── services/
+│       ├── auth.py               — authenticate, session management
+│       └── user.py               — user CRUD
+├── alembic/                      — migrations
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
@@ -72,14 +74,14 @@ cliqtracker-api/
 ## Progress
 
 ### Phase 1 — Project Setup + Auth
-- [ ] Project structure + config
-- [ ] Async SQLAlchemy + Alembic setup
-- [ ] Redis connection
-- [ ] `POST /auth/register`
-- [ ] `POST /auth/login` + httpOnly cookie
-- [ ] `POST /auth/refresh`
-- [ ] `POST /auth/logout`
-- [ ] `GET /auth/me`
+- [x] Project structure + config
+- [x] Async SQLAlchemy + Alembic setup
+- [x] Redis connection
+- [x] `POST /auth/register`
+- [x] `POST /auth/login` + httpOnly cookie
+- [x] `POST /auth/refresh`
+- [x] `POST /auth/logout`
+- [x] `GET /auth/me`
 
 ### Phase 2 — Links + Redirect
 - [ ] `links` + `click_events` migrations
