@@ -52,16 +52,22 @@ cliqtracker-api/
 │   │   ├── redis.py              — get_redis dependency
 │   │   └── security.py           — password hashing, JWT encode/decode
 │   ├── models/
-│   │   └── user.py               — User ORM model
+│   │   ├── user.py               — User ORM model
+│   │   ├── link.py               — Link ORM model
+│   │   └── click_event.py        — ClickEvent ORM model
 │   ├── schemas/
-│   │   ├── common.py             — ApiResponse generic wrapper
-│   │   └── user.py               — request/response schemas
+│   │   ├── common.py             — ApiResponse, PaginatedResponse
+│   │   ├── user.py               — user request/response schemas
+│   │   ├── link.py               — link request/response schemas
+│   │   └── click_event.py        — click event response schema
 │   ├── routers/
 │   │   ├── auth.py               — login, refresh, logout
 │   │   └── user.py               — register, me, update, delete
 │   └── services/
 │       ├── auth.py               — authenticate, session management
-│       └── user.py               — user CRUD
+│       ├── user.py               — user CRUD
+│       ├── link.py               — link CRUD
+│       └── click_event.py        — click event operations
 ├── alembic/                      — migrations
 ├── Dockerfile
 ├── docker-compose.yml
@@ -84,7 +90,7 @@ cliqtracker-api/
 - [x] `GET /auth/me`
 
 ### Phase 2 — Links + Redirect
-- [ ] `links` + `click_events` migrations
+- [x] `links` + `click_events` migrations
 - [ ] `POST /links`
 - [ ] `GET /links`
 - [ ] `GET /links/{id}`
