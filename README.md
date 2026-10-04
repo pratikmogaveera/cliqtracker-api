@@ -62,7 +62,8 @@ cliqtracker-api/
 │   │   └── click_event.py        — click event response schema
 │   ├── routers/
 │   │   ├── auth.py               — login, refresh, logout
-│   │   └── user.py               — register, me, update, delete
+│   │   ├── user.py               — register, me, update, delete
+│   │   └── link.py               — link CRUD
 │   └── services/
 │       ├── auth.py               — authenticate, session management
 │       ├── user.py               — user CRUD
@@ -91,11 +92,11 @@ cliqtracker-api/
 
 ### Phase 2 — Links + Redirect
 - [x] `links` + `click_events` migrations
-- [ ] `POST /links`
-- [ ] `GET /links`
-- [ ] `GET /links/{id}`
-- [ ] `PATCH /links/{id}`
-- [ ] `DELETE /links/{id}`
+- [x] `POST /links`
+- [x] `GET /links`
+- [x] `GET /links/{id}`
+- [x] `PATCH /links/{id}`
+- [x] `DELETE /links/{id}`
 - [ ] `GET /go/{short_code}` — Redis cache + 302
 
 ### Phase 3 — Background Worker + Analytics
