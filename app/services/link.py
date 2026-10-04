@@ -11,21 +11,21 @@ from app.schemas.common import PaginatedResponse
 from app.schemas.link import CreateLinkRequest, LinkResponse, UpdateLinkRequest
 
 
-async def create_link(payload: CreateLinkRequest, user_id: str, db: AsyncSession) -> LinkResponse:
+async def create_link(data: CreateLinkRequest, user_id: str, db: AsyncSession) -> LinkResponse:
   try:
-    if payload.short_code is None:
+    if data.short_code is None:
       short_code = generate(
         alphabet="_-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", size=6
       )
     else:
-      short_code = payload.short_code
+      short_code = data.short_code
 
     new_link = Link(
-      title=payload.title,
-      full_url=str(payload.full_url),
+      title=data.title,
+      full_url=str(data.full_url),
       short_code=short_code,
       owner_id=user_id,
-      is_custom_slug=payload.short_code is not None,
+      is_custom_slug=data.short_code is not None,
     )
 
     db.add(new_link)
@@ -60,7 +60,7 @@ async def get_link(user_id: str, link_id: str, db: AsyncSession) -> LinkResponse
 
 
 async def get_links(
-  user_id: str, db: AsyncSession, page: int, limit: int = settings.PAGE_SIZE
+  user_id: str, db: AsyncSession, page: int = 1, limit: int = settings.PAGE_SIZE
 ) -> PaginatedResponse[LinkResponse]:
   query = (
     select(Link, func.count(ClickEvent.id).label("click_count"))
@@ -84,7 +84,9 @@ async def get_links(
   return PaginatedResponse(items=items, page=page, limit=limit, has_next_page=len(response) > limit)
 
 
-async def update_link(link_id: str, user_id: str, payload: UpdateLinkRequest, db: AsyncSession):
+async def update_link(
+  link_id: str, user_id: str, data: UpdateLinkRequest, db: AsyncSession
+) -> LinkResponse:
   link = await db.get(Link, link_id)
 
   if link is None:
@@ -93,12 +95,12 @@ async def update_link(link_id: str, user_id: str, payload: UpdateLinkRequest, db
   if link.owner_id != user_id:
     raise HTTPException(403, "Not authorised.")
 
-  if payload.title is not None:
-    link.title = payload.title
-  if payload.full_url is not None:
-    link.full_url = str(payload.full_url)
-  if payload.is_active is not None:
-    link.is_active = payload.is_active
+  if data.title is not None:
+    link.title = data.title
+  if data.full_url is not None:
+    link.full_url = str(data.full_url)
+  if data.is_active is not None:
+    link.is_active = data.is_active
 
   await db.commit()
   await db.refresh(link)
@@ -106,7 +108,7 @@ async def update_link(link_id: str, user_id: str, payload: UpdateLinkRequest, db
   return LinkResponse.model_validate(link)
 
 
-async def delete_link(link_id: str, user_id: str, db: AsyncSession):
+async def delete_link(link_id: str, user_id: str, db: AsyncSession) -> None:
   link = await db.get(Link, link_id)
 
   if link is None:
