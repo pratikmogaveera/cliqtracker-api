@@ -63,11 +63,13 @@ cliqtracker-api/
 │   ├── routers/
 │   │   ├── auth.py               — login, refresh, logout
 │   │   ├── user.py               — register, me, update, delete
-│   │   └── link.py               — link CRUD
+│   │   ├── link.py               — link CRUD
+│   │   └── redirect.py           — /go/{short_code} redirect handler
 │   └── services/
 │       ├── auth.py               — authenticate, session management
 │       ├── user.py               — user CRUD
 │       ├── link.py               — link CRUD
+│       ├── redirect.py           — Redis cache-aside + DB fallback
 │       └── click_event.py        — click event operations
 ├── alembic/                      — migrations
 ├── Dockerfile
@@ -97,7 +99,7 @@ cliqtracker-api/
 - [x] `GET /links/{id}`
 - [x] `PATCH /links/{id}`
 - [x] `DELETE /links/{id}`
-- [ ] `GET /go/{short_code}` — Redis cache + 302
+- [x] `GET /go/{short_code}` — Redis cache + 302
 
 ### Phase 3 — Background Worker + Analytics
 - [ ] ARQ worker setup
