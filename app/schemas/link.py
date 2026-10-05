@@ -28,3 +28,8 @@ class LinkResponse(BaseModel):
   click_count: int | None = None
   created_on: datetime
   updated_on: datetime
+
+
+class CachedLinkData(BaseModel):
+  link_id: str
+  full_url: str
