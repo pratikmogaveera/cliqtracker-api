@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
 
+from arq import create_pool
+from arq.connections import RedisSettings
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
@@ -10,15 +12,21 @@ from app.routers.link import router as link_router
 from app.routers.redirect import router as redirect_router
 from app.routers.user import router as user_router
 
+REDIS_SETTINGS = RedisSettings.from_dsn(settings.REDIS_URL)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
   redis = Redis.from_url(url=settings.REDIS_URL, decode_responses=True)
+  arq_pool = await create_pool(REDIS_SETTINGS)
+
   app.state.redis = redis
+  app.state.arq_pool = arq_pool
 
   yield
 
   await redis.close()
+  await arq_pool.aclose()
 
 
 app = FastAPI(lifespan=lifespan)
