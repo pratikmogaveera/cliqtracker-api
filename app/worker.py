@@ -1,5 +1,6 @@
 from arq import func
 from arq.connections import RedisSettings
+from geoip2 import database
 
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
@@ -12,9 +13,11 @@ REDIS_SETTINGS = RedisSettings.from_dsn(dsn=settings.REDIS_URL)
 async def startup(ctx):
   print("[Worker] Server started.")
   ctx["session_factory"] = AsyncSessionLocal
+  ctx["geo_reader"] = database.Reader("GeoLite2-City.mmdb")
 
 
 async def shutdown(ctx):
+  ctx["geo_reader"].close()
   print("[Worker] Server shutting down.")
 
 
