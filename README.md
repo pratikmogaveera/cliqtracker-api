@@ -105,8 +105,8 @@ cliqtracker-api/
 
 ### Phase 3 — Background Worker + Analytics
 - [x] ARQ worker setup
-- [ ] GeoLite2 + `user-agents` integration
-- [ ] `process_click` job
+- [x] GeoLite2 + `user-agents` integration
+- [x] `process_click` job
 - [x] Swap redirect to enqueue job
 - [ ] Analytics endpoints (summary, timeseries, geo, devices, referrers)
 
