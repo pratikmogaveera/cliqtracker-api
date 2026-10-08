@@ -17,5 +17,6 @@ class ClickEvent(Base):
   state: Mapped[str | None]
   browser: Mapped[str | None]
   device_type: Mapped[str | None]
+  os: Mapped[str | None]
   referrer: Mapped[str | None]
   clicked_at: Mapped[datetime] = mapped_column(server_default=func.now())

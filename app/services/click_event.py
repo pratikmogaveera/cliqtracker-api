@@ -10,6 +10,7 @@ async def create_click_event(
   state: str | None,
   browser: str | None,
   device_type: str | None,
+  os: str | None,
   referrer: str | None,
   db: AsyncSession,
 ) -> None:
@@ -21,6 +22,7 @@ async def create_click_event(
       state=state,
       browser=browser,
       device_type=device_type,
+      os=os,
       referrer=referrer,
     )
   )

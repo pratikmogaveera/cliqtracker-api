@@ -21,12 +21,13 @@ async def process_click(
   ctx, link_id: str, ip: str | None, user_agent: str | None, referrer: str | None
 ) -> None:
   async with ctx["session_factory"]() as session:
-    continent = country = state = browser = device_type = None
+    continent = country = state = browser = device_type = os = None
 
     if user_agent:
       ua = parse(user_agent)
       browser = ua.browser.family
       device_type = get_device_type(ua)
+      os = ua.os.family
 
     if ip:
       try:
@@ -45,5 +46,6 @@ async def process_click(
       state=state,
       browser=browser,
       device_type=device_type,
+      os=os,
       referrer=referrer,
     )

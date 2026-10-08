@@ -13,5 +13,6 @@ class ClickEventResponse(BaseModel):
   state: str | None = None
   browser: str | None = None
   device_type: str | None = None
+  os: str | None = None
   referrer: str | None = None
   clicked_at: datetime
