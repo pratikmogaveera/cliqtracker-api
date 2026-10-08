@@ -59,7 +59,8 @@ cliqtracker-api/
 │   │   ├── common.py             — ApiResponse, PaginatedResponse
 │   │   ├── user.py               — user request/response schemas
 │   │   ├── link.py               — link request/response schemas
-│   │   └── click_event.py        — click event response schema
+│   │   ├── click_event.py        — click event response schema
+│   │   └── analytics.py          — analytics response schemas
 │   ├── routers/
 │   │   ├── auth.py               — login, refresh, logout
 │   │   ├── user.py               — register, me, update, delete
