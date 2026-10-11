@@ -71,7 +71,8 @@ cliqtracker-api/
 │   │   ├── user.py               — user CRUD
 │   │   ├── link.py               — link CRUD
 │   │   ├── redirect.py           — Redis cache-aside + DB fallback
-│   │   └── click_event.py        — click event operations
+│   │   ├── click_event.py        — click event operations
+│   │   └── analytics.py          — analytics queries (summary, timeseries, geo, devices, referrers)
 │   ├── tasks.py                  — ARQ job definitions (process_click)
 │   └── worker.py                 — ARQ WorkerSettings, startup/shutdown
 ├── alembic/                      — migrations
