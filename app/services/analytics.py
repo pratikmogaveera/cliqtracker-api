@@ -1,9 +1,11 @@
 from enum import Enum
 
+from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.click_event import ClickEvent
+from app.models.link import Link
 from app.schemas.analytics import (
   AnalyticsByBrowserAndDevice,
   AnalyticsByGeolocation,
@@ -14,12 +16,24 @@ from app.schemas.analytics import (
 )
 
 
+async def _verify_link_ownership(link_id: str, user_id: str, db: AsyncSession) -> None:
+  link = await db.get(Link, link_id)
+  if link is None:
+    raise HTTPException(404, "Link not found.")
+
+  if link.owner_id != user_id:
+    raise HTTPException(403, "Not authorised.")
+
+
 class Granularity(Enum):
   HOURLY = "hour"
   DAILY = "day"
 
 
-async def get_link_summary(link_id: str, db: AsyncSession) -> AnalyticsSummaryResponse:
+async def get_link_summary(
+  link_id: str, user_id: str, db: AsyncSession
+) -> AnalyticsSummaryResponse:
+  await _verify_link_ownership(link_id=link_id, user_id=user_id, db=db)
   query = select(func.count(ClickEvent.id)).where(ClickEvent.link_id == link_id)
   total = (await db.execute(query)).scalar() or 0
 
@@ -64,8 +78,9 @@ async def get_link_summary(link_id: str, db: AsyncSession) -> AnalyticsSummaryRe
 
 
 async def get_link_timeseries(
-  link_id: str, db: AsyncSession, granularity: Granularity = Granularity.HOURLY
+  link_id: str, user_id: str, db: AsyncSession, granularity: Granularity = Granularity.HOURLY
 ) -> AnalyticsByTimeseries:
+  await _verify_link_ownership(link_id=link_id, user_id=user_id, db=db)
   query = (
     select(
       func.date_trunc(granularity.value, ClickEvent.clicked_at).label("bucket"),
@@ -90,7 +105,8 @@ async def get_link_timeseries(
   return AnalyticsByTimeseries(data=result)
 
 
-async def get_link_geo(link_id: str, db: AsyncSession) -> AnalyticsByGeolocation:
+async def get_link_geo(link_id: str, user_id: str, db: AsyncSession) -> AnalyticsByGeolocation:
+  await _verify_link_ownership(link_id=link_id, user_id=user_id, db=db)
   data = dict()
   query = (
     select(ClickEvent.country, func.count(ClickEvent.id))
@@ -108,7 +124,10 @@ async def get_link_geo(link_id: str, db: AsyncSession) -> AnalyticsByGeolocation
   return AnalyticsByGeolocation(data=data)
 
 
-async def get_link_devices(link_id: str, db: AsyncSession) -> AnalyticsByBrowserAndDevice:
+async def get_link_devices(
+  link_id: str, user_id: str, db: AsyncSession
+) -> AnalyticsByBrowserAndDevice:
+  await _verify_link_ownership(link_id=link_id, user_id=user_id, db=db)
   query = (
     select(ClickEvent.browser, func.count(ClickEvent.id))
     .where(ClickEvent.link_id == link_id)
@@ -151,7 +170,8 @@ async def get_link_devices(link_id: str, db: AsyncSession) -> AnalyticsByBrowser
   return AnalyticsByBrowserAndDevice(browsers=browser, device_types=device_type, os=os)
 
 
-async def get_link_referrers(link_id: str, db: AsyncSession) -> AnalyticsByReferrer:
+async def get_link_referrers(link_id: str, user_id: str, db: AsyncSession) -> AnalyticsByReferrer:
+  await _verify_link_ownership(link_id=link_id, user_id=user_id, db=db)
   query = (
     select(ClickEvent.referrer, func.count(ClickEvent.id))
     .where(ClickEvent.link_id == link_id)
