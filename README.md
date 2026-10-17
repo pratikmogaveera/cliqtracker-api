@@ -114,7 +114,7 @@ cliqtracker-api/
 - [x] Analytics endpoints (summary, timeseries, geo, devices, referrers)
 
 ### Phase 4 — Advanced Features
-- [ ] Link expiry
+- [x] Link expiry
 - [ ] Password protection
 - [ ] API key auth
 - [ ] Rate limiting

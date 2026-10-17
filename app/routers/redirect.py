@@ -1,5 +1,3 @@
-import json
-
 from arq import ArqRedis
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
@@ -8,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.redis import get_arq_pool, get_redis
-from app.schemas.link import CachedLinkData
 from app.services.redirect import get_redirect_url
 
 router = APIRouter(prefix="/go", tags=["Redirect"])
@@ -22,24 +19,7 @@ async def redirect_url_route(
   redis: Redis = Depends(get_redis),
   arq_pool: ArqRedis = Depends(get_arq_pool),
 ) -> RedirectResponse:
-  redirect_data: CachedLinkData
-  forwarded_for = request.headers.get("x-forwarded-for")
-  ip = (
-    forwarded_for.split(",")[0].strip()
-    if forwarded_for
-    else (request.client.host if request.client else None)
+  redirect_url = await get_redirect_url(
+    short_code=short_code, request=request, db=db, redis=redis, arq_pool=arq_pool
   )
-  user_agent = request.headers.get("user-agent")
-  referrer = request.headers.get("referer")
-  cached_data_string: str | None = await redis.get(f"short:{short_code}")
-
-  if cached_data_string is None:
-    link_id, redirect_url = await get_redirect_url(short_code=short_code, db=db)
-    redirect_data = CachedLinkData(link_id=link_id, full_url=redirect_url)
-    await redis.set(name=f"short:{short_code}", value=json.dumps(redirect_data.model_dump()))
-  else:
-    parsed_data = json.loads(s=cached_data_string)
-    redirect_data = CachedLinkData(**parsed_data)
-
-  await arq_pool.enqueue_job("process_click", redirect_data.link_id, ip, user_agent, referrer)
-  return RedirectResponse(status_code=302, url=str(redirect_data.full_url))
+  return RedirectResponse(status_code=302, url=str(redirect_url))

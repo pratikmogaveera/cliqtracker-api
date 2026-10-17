@@ -10,6 +10,7 @@ class Settings(BaseSettings):
   REFRESH_TOKEN_EXPIRE_DAYS: int = 7
   ENVIRONMENT: str = "dev"
   PAGE_SIZE: int = 25
+  REDIS_LINK_CACHE_EXPIRY: int = 1 * 60 * 60  # 1hr
 
   model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

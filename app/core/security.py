@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from jose import jwt
 from passlib.context import CryptContext
@@ -26,7 +26,7 @@ def create_jwt_token(sub: str) -> str:
   return jwt.encode(
     {
       "sub": sub,
-      "exp": datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+      "exp": datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
     },
     key=settings.JWT_SECRET,
     algorithm=settings.JWT_ALGORITHM,

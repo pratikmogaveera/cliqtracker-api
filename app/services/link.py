@@ -1,5 +1,8 @@
+import json
+
 from fastapi import HTTPException
 from nanoid import generate
+from redis.asyncio import Redis
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +11,7 @@ from app.core.config import settings
 from app.models.click_event import ClickEvent
 from app.models.link import Link
 from app.schemas.common import PaginatedResponse
-from app.schemas.link import CreateLinkRequest, LinkResponse, UpdateLinkRequest
+from app.schemas.link import CachedLinkData, CreateLinkRequest, LinkResponse, UpdateLinkRequest
 
 
 async def create_link(data: CreateLinkRequest, user_id: str, db: AsyncSession) -> LinkResponse:
@@ -26,6 +29,7 @@ async def create_link(data: CreateLinkRequest, user_id: str, db: AsyncSession) -
       short_code=short_code,
       owner_id=user_id,
       is_custom_slug=data.short_code is not None,
+      expiry_at=data.expiry_at,
     )
 
     db.add(new_link)
@@ -85,7 +89,7 @@ async def get_links(
 
 
 async def update_link(
-  link_id: str, user_id: str, data: UpdateLinkRequest, db: AsyncSession
+  link_id: str, user_id: str, data: UpdateLinkRequest, db: AsyncSession, redis: Redis
 ) -> LinkResponse:
   link = await db.get(Link, link_id)
 
@@ -101,9 +105,21 @@ async def update_link(
     link.full_url = str(data.full_url)
   if data.is_active is not None:
     link.is_active = data.is_active
+  if data.expiry_at is not None:
+    link.expiry_at = data.expiry_at
+  elif data.clear_expiry:
+    link.expiry_at = None
 
   await db.commit()
   await db.refresh(link)
+
+  redirect_data = CachedLinkData(link_id=link.id, full_url=link.full_url, expiry_at=link.expiry_at)
+
+  await redis.setex(
+    name=f"short:{link.short_code}",
+    value=json.dumps(redirect_data.model_dump(mode="json")),
+    time=settings.REDIS_LINK_CACHE_EXPIRY,
+  )
 
   return LinkResponse.model_validate(link)
 

@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.redis import get_redis
 from app.deps import get_user_id
 from app.schemas.common import ApiResponse, PaginatedResponse
 from app.schemas.link import CreateLinkRequest, LinkResponse, UpdateLinkRequest
@@ -56,6 +58,7 @@ async def update_link_route(
   data: UpdateLinkRequest,
   user_id: str = Depends(get_user_id),
   db: AsyncSession = Depends(get_db),
+  redis: Redis = Depends(get_redis),
 ) -> ApiResponse[LinkResponse]:
-  link = await update_link(link_id=link_id, data=data, user_id=user_id, db=db)
+  link = await update_link(link_id=link_id, data=data, user_id=user_id, db=db, redis=redis)
   return ApiResponse(success=True, message="Link updated successfully.", data=link)
