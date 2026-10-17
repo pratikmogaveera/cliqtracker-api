@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
 
 from app.core.config import settings
+from app.routers.analytics import router as analytics_router
 from app.routers.auth import router as auth_router
 from app.routers.link import router as link_router
 from app.routers.redirect import router as redirect_router
@@ -40,6 +41,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
   )
 
 
+app.include_router(analytics_router)
 app.include_router(auth_router)
 app.include_router(link_router)
 app.include_router(redirect_router)

@@ -40,6 +40,7 @@ async def get_link_summary(
   query = (
     select(ClickEvent.browser, func.count(ClickEvent.id))
     .where(ClickEvent.link_id == link_id)
+    .where(ClickEvent.browser.is_not(None))
     .group_by(ClickEvent.browser)
     .order_by(func.count(ClickEvent.id).desc())
     .limit(1)
@@ -52,6 +53,7 @@ async def get_link_summary(
   query = (
     select(ClickEvent.country, func.count(ClickEvent.id))
     .where(ClickEvent.link_id == link_id)
+    .where(ClickEvent.country.is_not(None))
     .group_by(ClickEvent.country)
     .order_by(func.count(ClickEvent.id).desc())
     .limit(1)
@@ -63,6 +65,7 @@ async def get_link_summary(
   query = (
     select(ClickEvent.referrer, func.count(ClickEvent.id))
     .where(ClickEvent.link_id == link_id)
+    .where(ClickEvent.referrer.is_not(None))
     .group_by(ClickEvent.referrer)
     .order_by(func.count(ClickEvent.id).desc())
     .limit(1)
