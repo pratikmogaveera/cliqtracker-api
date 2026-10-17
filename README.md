@@ -65,7 +65,8 @@ cliqtracker-api/
 │   │   ├── auth.py               — login, refresh, logout
 │   │   ├── user.py               — register, me, update, delete
 │   │   ├── link.py               — link CRUD
-│   │   └── redirect.py           — /go/{short_code} redirect handler
+│   │   ├── redirect.py           — /go/{short_code} redirect handler
+│   │   └── analytics.py          — /links/{link_id}/analytics/* endpoints
 │   ├── services/
 │   │   ├── auth.py               — authenticate, session management
 │   │   ├── user.py               — user CRUD
@@ -110,7 +111,7 @@ cliqtracker-api/
 - [x] GeoLite2 + `user-agents` integration
 - [x] `process_click` job
 - [x] Swap redirect to enqueue job
-- [ ] Analytics endpoints (summary, timeseries, geo, devices, referrers)
+- [x] Analytics endpoints (summary, timeseries, geo, devices, referrers)
 
 ### Phase 4 — Advanced Features
 - [ ] Link expiry
