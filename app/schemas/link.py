@@ -8,6 +8,7 @@ class CreateLinkRequest(BaseModel):
   full_url: AnyHttpUrl
   short_code: str | None = None
   expiry_at: datetime | None = None
+  raw_password: str | None = None
 
   @field_validator("expiry_at")
   @classmethod
@@ -23,6 +24,8 @@ class UpdateLinkRequest(BaseModel):
   is_active: bool | None = None
   expiry_at: datetime | None = None
   clear_expiry: bool = False
+  raw_password: str | None = None
+  clear_password: bool = False
 
   @field_validator("expiry_at")
   @classmethod
@@ -43,6 +46,7 @@ class LinkResponse(BaseModel):
   is_active: bool
   is_custom_slug: bool
   expiry_at: datetime | None = None
+  is_protected: bool = False
   click_count: int | None = None
   created_on: datetime
   updated_on: datetime
@@ -52,3 +56,4 @@ class CachedLinkData(BaseModel):
   link_id: str
   full_url: str
   expiry_at: datetime | None = None
+  is_protected: bool = False

@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.security import hash_password
 from app.models.click_event import ClickEvent
 from app.models.link import Link
 from app.schemas.common import PaginatedResponse
@@ -30,6 +31,7 @@ async def create_link(data: CreateLinkRequest, user_id: str, db: AsyncSession) -
       owner_id=user_id,
       is_custom_slug=data.short_code is not None,
       expiry_at=data.expiry_at,
+      hashed_password=hash_password(data.raw_password) if data.raw_password is not None else None,
     )
 
     db.add(new_link)
@@ -37,7 +39,9 @@ async def create_link(data: CreateLinkRequest, user_id: str, db: AsyncSession) -
     await db.commit()
     await db.refresh(new_link)
 
-    return LinkResponse.model_validate(new_link)
+    return LinkResponse.model_validate(new_link).model_copy(
+      update={"is_protected": new_link.hashed_password is not None}
+    )
   except IntegrityError:
     await db.rollback()
     raise HTTPException(409, "A link with this short code already exists.")
@@ -59,7 +63,9 @@ async def get_link(user_id: str, link_id: str, db: AsyncSession) -> LinkResponse
     raise HTTPException(404, "No link found.")
 
   link, count = response
-  result = LinkResponse.model_validate(link).model_copy(update={"click_count": count})
+  result = LinkResponse.model_validate(link).model_copy(
+    update={"click_count": count, "is_protected": link.hashed_password is not None}
+  )
   return result
 
 
@@ -83,7 +89,11 @@ async def get_links(
   items: list[LinkResponse] = []
 
   for link, count in items_to_return:
-    items.append(LinkResponse.model_validate(link).model_copy(update={"click_count": count}))
+    items.append(
+      LinkResponse.model_validate(link).model_copy(
+        update={"click_count": count, "is_protected": link.hashed_password is not None}
+      )
+    )
 
   return PaginatedResponse(items=items, page=page, limit=limit, has_next_page=len(response) > limit)
 
@@ -109,11 +119,20 @@ async def update_link(
     link.expiry_at = data.expiry_at
   elif data.clear_expiry:
     link.expiry_at = None
+  if data.raw_password is not None:
+    link.hashed_password = hash_password(data.raw_password)
+  elif data.clear_password:
+    link.hashed_password = None
 
   await db.commit()
   await db.refresh(link)
 
-  redirect_data = CachedLinkData(link_id=link.id, full_url=link.full_url, expiry_at=link.expiry_at)
+  redirect_data = CachedLinkData(
+    link_id=link.id,
+    full_url=link.full_url,
+    expiry_at=link.expiry_at,
+    is_protected=link.hashed_password is not None,
+  )
 
   await redis.setex(
     name=f"short:{link.short_code}",
@@ -121,10 +140,12 @@ async def update_link(
     time=settings.REDIS_LINK_CACHE_EXPIRY,
   )
 
-  return LinkResponse.model_validate(link)
+  return LinkResponse.model_validate(link).model_copy(
+    update={"is_protected": link.hashed_password is not None}
+  )
 
 
-async def delete_link(link_id: str, user_id: str, db: AsyncSession) -> None:
+async def delete_link(link_id: str, user_id: str, db: AsyncSession, redis: Redis) -> None:
   link = await db.get(Link, link_id)
 
   if link is None:
@@ -134,3 +155,5 @@ async def delete_link(link_id: str, user_id: str, db: AsyncSession) -> None:
     raise HTTPException(403, "Not authorised.")
   await db.delete(link)
   await db.commit()
+
+  await redis.delete(f"short:{link.short_code}")

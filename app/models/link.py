@@ -18,5 +18,6 @@ class Link(Base):
   is_active: Mapped[bool] = mapped_column(default=True)
   is_custom_slug: Mapped[bool] = mapped_column(default=False)
   expiry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+  hashed_password: Mapped[str | None] = mapped_column(default=None)
   created_on: Mapped[datetime] = mapped_column(server_default=func.now())
   updated_on: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())

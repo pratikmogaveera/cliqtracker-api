@@ -46,9 +46,12 @@ async def create_link_route(
 
 @router.delete("/{link_id}", response_model=ApiResponse[None])
 async def delete_link_route(
-  link_id: str, user_id: str = Depends(get_user_id), db: AsyncSession = Depends(get_db)
+  link_id: str,
+  user_id: str = Depends(get_user_id),
+  db: AsyncSession = Depends(get_db),
+  redis: Redis = Depends(get_redis),
 ) -> ApiResponse[None]:
-  await delete_link(link_id=link_id, user_id=user_id, db=db)
+  await delete_link(link_id=link_id, user_id=user_id, db=db, redis=redis)
   return ApiResponse(success=True, message="Link deleted successfully")
 
 
