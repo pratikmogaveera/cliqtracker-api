@@ -47,26 +47,26 @@ async def create_link(data: CreateLinkRequest, user_id: str, db: AsyncSession) -
     raise HTTPException(409, "A link with this short code already exists.")
 
 
-async def get_link(user_id: str, link_id: str, db: AsyncSession) -> LinkResponse:
-  query = (
-    select(Link, func.count(ClickEvent.id).label("click_count"))
-    .outerjoin(target=ClickEvent, onclause=Link.id == ClickEvent.link_id)
-    .where(Link.id == link_id)
-    .where(Link.owner_id == user_id)
-    .group_by(Link.id)
-  )
-
-  raw_response = await db.execute(query)
-  response = raw_response.first()
-
-  if response is None:
+async def _get_link_or_raise(link_id: str, user_id: str, db: AsyncSession) -> Link:
+  link = await db.get(Link, link_id)
+  if link is None:
     raise HTTPException(404, "No link found.")
+  if link.owner_id != user_id:
+    raise HTTPException(403, "Not authorised.")
+  return link
 
-  link, count = response
-  result = LinkResponse.model_validate(link).model_copy(
+
+async def get_link(user_id: str, link_id: str, db: AsyncSession) -> LinkResponse:
+  link = await _get_link_or_raise(link_id=link_id, user_id=user_id, db=db)
+
+  count_result = await db.execute(
+    select(func.count(ClickEvent.id)).where(ClickEvent.link_id == link_id)
+  )
+  count = count_result.scalar() or 0
+
+  return LinkResponse.model_validate(link).model_copy(
     update={"click_count": count, "is_protected": link.hashed_password is not None}
   )
-  return result
 
 
 async def get_links(
@@ -101,13 +101,7 @@ async def get_links(
 async def update_link(
   link_id: str, user_id: str, data: UpdateLinkRequest, db: AsyncSession, redis: Redis
 ) -> LinkResponse:
-  link = await db.get(Link, link_id)
-
-  if link is None:
-    raise HTTPException(404, "Link not found.")
-
-  if link.owner_id != user_id:
-    raise HTTPException(403, "Not authorised.")
+  link = await _get_link_or_raise(link_id=link_id, user_id=user_id, db=db)
 
   if data.title is not None:
     link.title = data.title
@@ -146,13 +140,7 @@ async def update_link(
 
 
 async def delete_link(link_id: str, user_id: str, db: AsyncSession, redis: Redis) -> None:
-  link = await db.get(Link, link_id)
-
-  if link is None:
-    raise HTTPException(404, "Link not found.")
-
-  if link.owner_id != user_id:
-    raise HTTPException(403, "Not authorised.")
+  link = await _get_link_or_raise(link_id=link_id, user_id=user_id, db=db)
   await db.delete(link)
   await db.commit()
 

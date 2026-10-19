@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from pydantic import BaseModel, ConfigDict, field_validator
 
 
-class CreateServiceToken(BaseModel):
+class CreateServiceTokenRequest(BaseModel):
   title: str
   scopes: str
   expiry_at: datetime
@@ -16,7 +16,7 @@ class CreateServiceToken(BaseModel):
     return v
 
 
-class UpdateServiceToken(BaseModel):
+class UpdateServiceTokenRequest(BaseModel):
   title: str | None = None
   revoke_token: bool = False
 
