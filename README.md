@@ -60,7 +60,8 @@ cliqtracker-api/
 │   │   ├── user.py               — user request/response schemas
 │   │   ├── link.py               — link request/response schemas
 │   │   ├── click_event.py        — click event response schema
-│   │   └── analytics.py          — analytics response schemas
+│   │   ├── analytics.py          — analytics response schemas
+│   │   └── redirect.py           — unlock request/response schemas
 │   ├── routers/
 │   │   ├── auth.py               — login, refresh, logout
 │   │   ├── user.py               — register, me, update, delete
@@ -115,7 +116,7 @@ cliqtracker-api/
 
 ### Phase 4 — Advanced Features
 - [x] Link expiry
-- [ ] Password protection
+- [x] Password protection
 - [ ] API key auth
 - [ ] Rate limiting
 - [ ] Bulk CSV upload
