@@ -34,7 +34,7 @@ async def get_service_tokens_route(
 ) -> ApiResponse[list[ServiceTokenResponse]]:
   data = await get_service_tokens(user_id=user_id, db=db)
   return ApiResponse(
-    success=True, data=data, message="Service tokens details fetched successfully."
+    success=True, data=data, message="Service token list fetched successfully."
   )
 
 

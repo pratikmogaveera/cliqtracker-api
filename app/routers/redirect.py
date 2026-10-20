@@ -35,4 +35,4 @@ async def unlock_redirect_url_route(
   data = await get_unlock_redirect_url(
     short_code=short_code, data=payload, request=request, db=db, redis=redis, arq_pool=arq_pool
   )
-  return ApiResponse(success=True, data=data, message="Link unlocked successfully")
+  return ApiResponse(success=True, data=data, message="Link unlocked successfully.")

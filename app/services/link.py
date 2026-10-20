@@ -50,7 +50,7 @@ async def create_link(data: CreateLinkRequest, user_id: str, db: AsyncSession) -
 async def _get_link_or_raise(link_id: str, user_id: str, db: AsyncSession) -> Link:
   link = await db.get(Link, link_id)
   if link is None:
-    raise HTTPException(404, "No link found.")
+    raise HTTPException(404, "Link not found.")
   if link.owner_id != user_id:
     raise HTTPException(403, "Not authorised.")
   return link

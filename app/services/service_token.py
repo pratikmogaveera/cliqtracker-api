@@ -42,7 +42,7 @@ async def _get_service_token_or_raise(
 ) -> ServiceToken:
   service_token = await db.get(ServiceToken, token_id)
   if service_token is None:
-    raise HTTPException(404, "No token found.")
+    raise HTTPException(404, "Token not found.")
   if service_token.owner_id != user_id:
     raise HTTPException(403, "Not authorised.")
   return service_token

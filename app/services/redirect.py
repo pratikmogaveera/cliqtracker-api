@@ -33,7 +33,7 @@ async def get_redirect_url(
     raw_response = await db.execute(query)
     response = raw_response.scalar_one_or_none()
     if response is None:
-      raise HTTPException(404, "No link found.")
+      raise HTTPException(404, "Link not found.")
 
     redirect_data = CachedLinkData(
       link_id=response.id,
@@ -73,7 +73,7 @@ async def get_unlock_redirect_url(
   raw_response = await db.execute(query)
   response = raw_response.scalar_one_or_none()
   if response is None:
-    raise HTTPException(404, "No link found.")
+    raise HTTPException(404, "Link not found.")
 
   if response.expiry_at is not None:
     now = datetime.now(UTC)

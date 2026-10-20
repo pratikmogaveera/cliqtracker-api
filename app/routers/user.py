@@ -38,7 +38,7 @@ async def delete_user_route(
   await delete_user(user_id=user_id, db=db)
   response.delete_cookie("access_token")
   response.delete_cookie("refresh_token")
-  return ApiResponse(success=True, message="User deleted successfully")
+  return ApiResponse(success=True, message="User deleted successfully.")
 
 
 @router.patch("/me", response_model=ApiResponse[UserResponse])

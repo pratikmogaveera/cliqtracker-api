@@ -33,7 +33,7 @@ async def get_link_summary_router(
 ) -> ApiResponse[AnalyticsSummaryResponse]:
   data = await get_link_summary(link_id=link_id, user_id=user_id, db=db)
   return ApiResponse(
-    success=True, data=data, message="Link's analytics' summary fetched successfully"
+    success=True, data=data, message="Link analytics summary fetched successfully."
   )
 
 
@@ -50,7 +50,7 @@ async def get_link_timeseries_router(
 ) -> ApiResponse[AnalyticsByTimeseries]:
   data = await get_link_timeseries(link_id=link_id, user_id=user_id, granularity=granularity, db=db)
   return ApiResponse(
-    success=True, data=data, message="Link's timeseries analytics fetched successfully"
+    success=True, data=data, message="Link timeseries analytics fetched successfully."
   )
 
 
@@ -64,7 +64,7 @@ async def get_link_geo_route(
 ) -> ApiResponse[AnalyticsByGeolocation]:
   data = await get_link_geo(link_id=link_id, user_id=user_id, db=db)
   return ApiResponse(
-    success=True, data=data, message="Link's geolocation analytics fetched successfully"
+    success=True, data=data, message="Link geolocation analytics fetched successfully."
   )
 
 
@@ -78,7 +78,7 @@ async def get_link_devices_route(
 ) -> ApiResponse[AnalyticsByBrowserAndDevice]:
   data = await get_link_devices(link_id=link_id, user_id=user_id, db=db)
   return ApiResponse(
-    success=True, data=data, message="Link's browser and device analytics fetched successfully"
+    success=True, data=data, message="Link device analytics fetched successfully."
   )
 
 
@@ -92,5 +92,5 @@ async def get_link_referrers_route(
 ) -> ApiResponse[AnalyticsByReferrer]:
   data = await get_link_referrers(link_id=link_id, user_id=user_id, db=db)
   return ApiResponse(
-    success=True, data=data, message="Link's referrer analytics fetched successfully"
+    success=True, data=data, message="Link referrer analytics fetched successfully."
   )
