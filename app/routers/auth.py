@@ -1,9 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from redis.asyncio import Redis
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, HTTPException, Request, Response
 
-from app.core.database import get_db
-from app.core.redis import get_redis
+from app.deps import DB, RedisClient
 from app.schemas.common import ApiResponse
 from app.schemas.user import LoginUserRequest, UserResponse
 from app.services.auth import authenticate_user, logout_user, refresh_access_token
@@ -15,8 +12,8 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 async def authenticate_user_route(
   payload: LoginUserRequest,
   response: Response,
-  db: AsyncSession = Depends(get_db),
-  redis: Redis = Depends(get_redis),
+  db: DB,
+  redis: RedisClient,
 ) -> ApiResponse[UserResponse]:
   user_details, access_token, refresh_token = await authenticate_user(
     data=payload, db=db, redis=redis
@@ -29,7 +26,7 @@ async def authenticate_user_route(
 
 @router.post("/logout", response_model=ApiResponse[None])
 async def logout_user_route(
-  request: Request, response: Response, redis: Redis = Depends(get_redis)
+  request: Request, response: Response, redis: RedisClient
 ) -> ApiResponse[None]:
   refresh_token = request.cookies.get("refresh_token")
 
@@ -44,7 +41,7 @@ async def logout_user_route(
 
 @router.post("/refresh", response_model=ApiResponse[None])
 async def refresh_access_token_route(
-  request: Request, response: Response, redis: Redis = Depends(get_redis)
+  request: Request, response: Response, redis: RedisClient
 ) -> ApiResponse[None]:
   refresh_token = request.cookies.get("refresh_token")
   response.delete_cookie("access_token")

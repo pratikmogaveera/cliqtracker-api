@@ -1,11 +1,7 @@
-from fastapi import APIRouter, Depends
-from redis.asyncio import Redis
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter
 
 from app.core.config import settings
-from app.core.database import get_db
-from app.core.redis import get_redis
-from app.deps import get_user_id, require_scope
+from app.deps import DB, CurrentUserId, RedisClient, RequiredScope
 from app.schemas.common import ApiResponse, PaginatedResponse
 from app.schemas.link import CreateLinkRequest, LinkResponse, UpdateLinkRequest
 from app.services.link import create_link, delete_link, get_link, get_links, update_link
@@ -16,13 +12,13 @@ router = APIRouter(prefix="/links", tags=["Link"])
 @router.get(
   "/",
   response_model=ApiResponse[PaginatedResponse[LinkResponse]],
-  dependencies=[Depends(require_scope("links:read"))],
+  dependencies=[RequiredScope("links:read")],
 )
 async def get_links_route(
+  user_id: CurrentUserId,
+  db: DB,
   page: int = 1,
   limit: int = settings.PAGE_SIZE,
-  user_id: str = Depends(get_user_id),
-  db: AsyncSession = Depends(get_db),
 ) -> ApiResponse[PaginatedResponse[LinkResponse]]:
   paginated_links = await get_links(user_id=user_id, db=db, page=page, limit=limit)
   return ApiResponse(
@@ -33,11 +29,9 @@ async def get_links_route(
 @router.get(
   "/{link_id}",
   response_model=ApiResponse[LinkResponse],
-  dependencies=[Depends(require_scope("links:read"))],
+  dependencies=[RequiredScope("links:read")],
 )
-async def get_link_route(
-  link_id: str, user_id: str = Depends(get_user_id), db: AsyncSession = Depends(get_db)
-) -> ApiResponse[LinkResponse]:
+async def get_link_route(link_id: str, user_id: CurrentUserId, db: DB) -> ApiResponse[LinkResponse]:
   link = await get_link(link_id=link_id, user_id=user_id, db=db)
   return ApiResponse(success=True, message="Link details fetched successfully.", data=link)
 
@@ -45,12 +39,12 @@ async def get_link_route(
 @router.post(
   "/",
   response_model=ApiResponse[LinkResponse],
-  dependencies=[Depends(require_scope("links:write"))],
+  dependencies=[RequiredScope("links:write")],
 )
 async def create_link_route(
   payload: CreateLinkRequest,
-  user_id: str = Depends(get_user_id),
-  db: AsyncSession = Depends(get_db),
+  user_id: CurrentUserId,
+  db: DB,
 ) -> ApiResponse[LinkResponse]:
   link = await create_link(user_id=user_id, data=payload, db=db)
   return ApiResponse(success=True, message="Link created successfully.", data=link)
@@ -59,13 +53,13 @@ async def create_link_route(
 @router.delete(
   "/{link_id}",
   response_model=ApiResponse[None],
-  dependencies=[Depends(require_scope("links:delete"))],
+  dependencies=[RequiredScope("links:delete")],
 )
 async def delete_link_route(
   link_id: str,
-  user_id: str = Depends(get_user_id),
-  db: AsyncSession = Depends(get_db),
-  redis: Redis = Depends(get_redis),
+  user_id: CurrentUserId,
+  db: DB,
+  redis: RedisClient,
 ) -> ApiResponse[None]:
   await delete_link(link_id=link_id, user_id=user_id, db=db, redis=redis)
   return ApiResponse(success=True, message="Link deleted successfully.")
@@ -74,14 +68,14 @@ async def delete_link_route(
 @router.patch(
   "/{link_id}",
   response_model=ApiResponse[LinkResponse],
-  dependencies=[Depends(require_scope("links:write"))],
+  dependencies=[RequiredScope("links:write")],
 )
 async def update_link_route(
   link_id: str,
   data: UpdateLinkRequest,
-  user_id: str = Depends(get_user_id),
-  db: AsyncSession = Depends(get_db),
-  redis: Redis = Depends(get_redis),
+  user_id: CurrentUserId,
+  db: DB,
+  redis: RedisClient,
 ) -> ApiResponse[LinkResponse]:
   link = await update_link(link_id=link_id, data=data, user_id=user_id, db=db, redis=redis)
   return ApiResponse(success=True, message="Link updated successfully.", data=link)

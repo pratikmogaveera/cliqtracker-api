@@ -45,7 +45,7 @@ API at `http://localhost:8000` — interactive docs at `/docs`.
 cliqtracker-api/
 ├── app/
 │   ├── main.py                   — app factory, lifespan, exception handler
-│   ├── deps.py                   — get_user_id dependency
+│   ├── deps.py                   — Annotated type aliases, get_user_id, require_scope, RequiredScope
 │   ├── core/
 │   │   ├── config.py             — pydantic-settings config
 │   │   ├── database.py           — async engine, session factory, get_db
@@ -119,7 +119,7 @@ cliqtracker-api/
 ### Phase 4 — Advanced Features
 - [x] Link expiry
 - [x] Password protection
-- [ ] API key auth (service tokens created — auth wiring pending)
+- [x] API key auth
 - [ ] Rate limiting
 - [ ] Bulk CSV upload
 - [ ] QR code generation

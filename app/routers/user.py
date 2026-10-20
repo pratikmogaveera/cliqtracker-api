@@ -1,10 +1,6 @@
-from fastapi import APIRouter, Depends, Response
-from redis.asyncio import Redis
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Response
 
-from app.core.database import get_db
-from app.core.redis import get_redis
-from app.deps import get_user_id
+from app.deps import DB, CurrentUserId, RedisClient
 from app.schemas.common import ApiResponse
 from app.schemas.user import CreateUserRequest, UpdateUserRequest, UserResponse
 from app.services.auth import create_session
@@ -14,9 +10,7 @@ router = APIRouter(prefix="/users", tags=["User"])
 
 
 @router.get("/me", response_model=ApiResponse[UserResponse])
-async def get_user_route(
-  user_id: str = Depends(get_user_id), db: AsyncSession = Depends(get_db)
-) -> ApiResponse[UserResponse]:
+async def get_user_route(user_id: CurrentUserId, db: DB) -> ApiResponse[UserResponse]:
   user = await get_user(user_id=user_id, db=db)
   return ApiResponse(success=True, message="Account details fetched successfully.", data=user)
 
@@ -25,8 +19,8 @@ async def get_user_route(
 async def create_user_route(
   payload: CreateUserRequest,
   response: Response,
-  db: AsyncSession = Depends(get_db),
-  redis: Redis = Depends(get_redis),
+  db: DB,
+  redis: RedisClient,
 ) -> ApiResponse[UserResponse]:
   new_user = await create_user(data=payload, db=db)
 
@@ -39,7 +33,7 @@ async def create_user_route(
 
 @router.delete("/me", response_model=ApiResponse[None])
 async def delete_user_route(
-  response: Response, user_id: str = Depends(get_user_id), db: AsyncSession = Depends(get_db)
+  response: Response, user_id: CurrentUserId, db: DB
 ) -> ApiResponse[None]:
   await delete_user(user_id=user_id, db=db)
   response.delete_cookie("access_token")
@@ -50,8 +44,8 @@ async def delete_user_route(
 @router.patch("/me", response_model=ApiResponse[UserResponse])
 async def update_user_route(
   payload: UpdateUserRequest,
-  user_id: str = Depends(get_user_id),
-  db: AsyncSession = Depends(get_db),
+  user_id: CurrentUserId,
+  db: DB,
 ) -> ApiResponse[UserResponse]:
   updated_user = await update_user(data=payload, user_id=user_id, db=db)
   return ApiResponse(success=True, message="User updated successfully.", data=updated_user)

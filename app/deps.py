@@ -2,13 +2,16 @@ from datetime import UTC, datetime
 from hashlib import sha256
 from typing import Annotated
 
+from arq import ArqRedis
 from fastapi import Cookie, Depends, HTTPException, Request, Security
 from fastapi.security import APIKeyHeader
 from jose import JWTError
+from redis.asyncio import Redis
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.redis import get_arq_pool, get_redis
 from app.core.security import authenticate_jwt
 from app.models.service_token import ServiceToken
 
@@ -22,7 +25,6 @@ async def get_user_id(
   api_key: str = Security(api_key_header),
   db: AsyncSession = Depends(get_db),
 ) -> str:
-  print(f"access_token: {access_token} | api_key: {api_key}")
   if access_token is None and api_key is None:
     raise HTTPException(401, "Invalid/missing access token.")
 
@@ -64,3 +66,13 @@ def require_scope(required_scopes: str):
         raise HTTPException(403, "You don't have sufficient access.")
 
   return check_scope
+
+
+CurrentUserId = Annotated[str, Depends(get_user_id)]
+DB = Annotated[AsyncSession, Depends(get_db)]
+RedisClient = Annotated[Redis, Depends(get_redis)]
+ArqClient = Annotated[ArqRedis, Depends(get_arq_pool)]
+
+
+def RequiredScope(scope: str):  # noqa: N802
+  return Depends(require_scope(scope))
