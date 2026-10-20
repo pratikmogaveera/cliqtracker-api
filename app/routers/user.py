@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Response
 
-from app.deps import DB, CurrentUserId, RedisClient
+from app.deps import DB, CookieOnly, CurrentUserId, RedisClient
 from app.schemas.common import ApiResponse
 from app.schemas.user import CreateUserRequest, UpdateUserRequest, UserResponse
 from app.services.auth import create_session
@@ -9,7 +9,7 @@ from app.services.user import create_user, delete_user, get_user, update_user
 router = APIRouter(prefix="/users", tags=["User"])
 
 
-@router.get("/me", response_model=ApiResponse[UserResponse])
+@router.get("/me", response_model=ApiResponse[UserResponse], dependencies=[CookieOnly])
 async def get_user_route(user_id: CurrentUserId, db: DB) -> ApiResponse[UserResponse]:
   user = await get_user(user_id=user_id, db=db)
   return ApiResponse(success=True, message="Account details fetched successfully.", data=user)
@@ -31,7 +31,7 @@ async def create_user_route(
   return ApiResponse(success=True, message="User created successfully.", data=new_user)
 
 
-@router.delete("/me", response_model=ApiResponse[None])
+@router.delete("/me", response_model=ApiResponse[None], dependencies=[CookieOnly])
 async def delete_user_route(
   response: Response, user_id: CurrentUserId, db: DB
 ) -> ApiResponse[None]:
@@ -41,7 +41,7 @@ async def delete_user_route(
   return ApiResponse(success=True, message="User deleted successfully.")
 
 
-@router.patch("/me", response_model=ApiResponse[UserResponse])
+@router.patch("/me", response_model=ApiResponse[UserResponse], dependencies=[CookieOnly])
 async def update_user_route(
   payload: UpdateUserRequest,
   user_id: CurrentUserId,

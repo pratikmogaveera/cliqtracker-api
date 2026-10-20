@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.deps import DB, CurrentUserId
+from app.deps import DB, CookieOnly, CurrentUserId
 from app.schemas.common import ApiResponse
 from app.schemas.service_token import (
   CreateServiceTokenRequest,
@@ -20,7 +20,9 @@ from app.services.service_token import (
 router = APIRouter(prefix="/service-token", tags=["ServiceToken"])
 
 
-@router.get("/{token_id}", response_model=ApiResponse[ServiceTokenResponse])
+@router.get(
+  "/{token_id}", response_model=ApiResponse[ServiceTokenResponse], dependencies=[CookieOnly]
+)
 async def get_service_token_route(
   token_id: str, user_id: CurrentUserId, db: DB
 ) -> ApiResponse[ServiceTokenResponse]:
@@ -28,17 +30,15 @@ async def get_service_token_route(
   return ApiResponse(success=True, data=data, message="Service token details fetched successfully.")
 
 
-@router.get("/", response_model=ApiResponse[list[ServiceTokenResponse]])
+@router.get("/", response_model=ApiResponse[list[ServiceTokenResponse]], dependencies=[CookieOnly])
 async def get_service_tokens_route(
   user_id: CurrentUserId, db: DB
 ) -> ApiResponse[list[ServiceTokenResponse]]:
   data = await get_service_tokens(user_id=user_id, db=db)
-  return ApiResponse(
-    success=True, data=data, message="Service token list fetched successfully."
-  )
+  return ApiResponse(success=True, data=data, message="Service token list fetched successfully.")
 
 
-@router.post("/", response_model=ApiResponse[CreateServiceTokenResponse])
+@router.post("/", response_model=ApiResponse[CreateServiceTokenResponse], dependencies=[CookieOnly])
 async def create_service_token_route(
   payload: CreateServiceTokenRequest,
   user_id: CurrentUserId,
@@ -48,7 +48,9 @@ async def create_service_token_route(
   return ApiResponse(success=True, data=data, message="Service token created successfully.")
 
 
-@router.patch("/{token_id}", response_model=ApiResponse[ServiceTokenResponse])
+@router.patch(
+  "/{token_id}", response_model=ApiResponse[ServiceTokenResponse], dependencies=[CookieOnly]
+)
 async def update_service_token_route(
   token_id: str,
   payload: UpdateServiceTokenRequest,
@@ -59,7 +61,11 @@ async def update_service_token_route(
   return ApiResponse(success=True, data=data, message="Service token updated successfully.")
 
 
-@router.patch("/{token_id}/rotate", response_model=ApiResponse[CreateServiceTokenResponse])
+@router.patch(
+  "/{token_id}/rotate",
+  response_model=ApiResponse[CreateServiceTokenResponse],
+  dependencies=[CookieOnly],
+)
 async def rotate_service_token_route(
   token_id: str,
   user_id: CurrentUserId,
@@ -69,7 +75,7 @@ async def rotate_service_token_route(
   return ApiResponse(success=True, data=data, message="Service token rotated successfully.")
 
 
-@router.delete("/{token_id}", response_model=ApiResponse[None])
+@router.delete("/{token_id}", response_model=ApiResponse[None], dependencies=[CookieOnly])
 async def delete_service_token_route(
   token_id: str,
   user_id: CurrentUserId,

@@ -68,11 +68,17 @@ def require_scope(required_scopes: str):
   return check_scope
 
 
+def RequiredScope(scope: str):  # noqa: N802
+  return Depends(require_scope(scope))
+
+
+async def cookie_only(request: Request, _: str = Depends(get_user_id)) -> None:
+  if request.state.auth_via == "api_key":
+    raise HTTPException(403, "Not authorised.")
+
+
+CookieOnly = Depends(cookie_only)
 CurrentUserId = Annotated[str, Depends(get_user_id)]
 DB = Annotated[AsyncSession, Depends(get_db)]
 RedisClient = Annotated[Redis, Depends(get_redis)]
 ArqClient = Annotated[ArqRedis, Depends(get_arq_pool)]
-
-
-def RequiredScope(scope: str):  # noqa: N802
-  return Depends(require_scope(scope))
