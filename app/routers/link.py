@@ -52,7 +52,7 @@ async def delete_link_route(
   redis: Redis = Depends(get_redis),
 ) -> ApiResponse[None]:
   await delete_link(link_id=link_id, user_id=user_id, db=db, redis=redis)
-  return ApiResponse(success=True, message="Link deleted successfully")
+  return ApiResponse(success=True, message="Link deleted successfully.")
 
 
 @router.patch("/{link_id}", response_model=ApiResponse[LinkResponse])

@@ -11,6 +11,7 @@ from app.routers.analytics import router as analytics_router
 from app.routers.auth import router as auth_router
 from app.routers.link import router as link_router
 from app.routers.redirect import router as redirect_router
+from app.routers.service_token import router as service_token_router
 from app.routers.user import router as user_router
 
 REDIS_SETTINGS = RedisSettings.from_dsn(settings.REDIS_URL)
@@ -45,4 +46,5 @@ app.include_router(analytics_router)
 app.include_router(auth_router)
 app.include_router(link_router)
 app.include_router(redirect_router)
+app.include_router(service_token_router)
 app.include_router(user_router)

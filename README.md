@@ -67,14 +67,16 @@ cliqtracker-api/
 │   │   ├── user.py               — register, me, update, delete
 │   │   ├── link.py               — link CRUD
 │   │   ├── redirect.py           — /go/{short_code} redirect handler
-│   │   └── analytics.py          — /links/{link_id}/analytics/* endpoints
+│   │   ├── analytics.py          — /links/{link_id}/analytics/* endpoints
+│   │   └── service_token.py      — service token CRUD + rotate
 │   ├── services/
 │   │   ├── auth.py               — authenticate, session management
 │   │   ├── user.py               — user CRUD
 │   │   ├── link.py               — link CRUD
 │   │   ├── redirect.py           — Redis cache-aside + DB fallback
 │   │   ├── click_event.py        — click event operations
-│   │   └── analytics.py          — analytics queries (summary, timeseries, geo, devices, referrers)
+│   │   ├── analytics.py          — analytics queries (summary, timeseries, geo, devices, referrers)
+│   │   └── service_token.py      — service token CRUD + rotation logic
 │   ├── tasks.py                  — ARQ job definitions (process_click)
 │   └── worker.py                 — ARQ WorkerSettings, startup/shutdown
 ├── alembic/                      — migrations
@@ -117,7 +119,7 @@ cliqtracker-api/
 ### Phase 4 — Advanced Features
 - [x] Link expiry
 - [x] Password protection
-- [ ] API key auth
+- [x] API key auth
 - [ ] Rate limiting
 - [ ] Bulk CSV upload
 - [ ] QR code generation
