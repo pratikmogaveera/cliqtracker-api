@@ -119,7 +119,7 @@ cliqtracker-api/
 ### Phase 4 — Advanced Features
 - [x] Link expiry
 - [x] Password protection
-- [x] API key auth
+- [ ] API key auth (service tokens created — auth wiring pending)
 - [ ] Rate limiting
 - [ ] Bulk CSV upload
 - [ ] QR code generation
