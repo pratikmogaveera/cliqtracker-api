@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.deps import get_user_id
+from app.deps import get_user_id, require_scope
 from app.schemas.analytics import (
   AnalyticsByBrowserAndDevice,
   AnalyticsByGeolocation,
@@ -23,7 +23,11 @@ from app.services.analytics import (
 router = APIRouter(prefix="/links/{link_id}/analytics", tags=["Analytics"])
 
 
-@router.get("/summary", response_model=ApiResponse[AnalyticsSummaryResponse])
+@router.get(
+  "/summary",
+  response_model=ApiResponse[AnalyticsSummaryResponse],
+  dependencies=[Depends(require_scope("analytics:read"))],
+)
 async def get_link_summary_router(
   link_id: str,
   user_id: str = Depends(get_user_id),
@@ -35,7 +39,11 @@ async def get_link_summary_router(
   )
 
 
-@router.get("/timeseries", response_model=ApiResponse[AnalyticsByTimeseries])
+@router.get(
+  "/timeseries",
+  response_model=ApiResponse[AnalyticsByTimeseries],
+  dependencies=[Depends(require_scope("analytics:read"))],
+)
 async def get_link_timeseries_router(
   link_id: str,
   granularity: Granularity = Granularity.DAILY,
@@ -48,7 +56,11 @@ async def get_link_timeseries_router(
   )
 
 
-@router.get("/geo", response_model=ApiResponse[AnalyticsByGeolocation])
+@router.get(
+  "/geo",
+  response_model=ApiResponse[AnalyticsByGeolocation],
+  dependencies=[Depends(require_scope("analytics:read"))],
+)
 async def get_link_geo_route(
   link_id: str, user_id: str = Depends(get_user_id), db: AsyncSession = Depends(get_db)
 ) -> ApiResponse[AnalyticsByGeolocation]:
@@ -58,7 +70,11 @@ async def get_link_geo_route(
   )
 
 
-@router.get("/devices", response_model=ApiResponse[AnalyticsByBrowserAndDevice])
+@router.get(
+  "/devices",
+  response_model=ApiResponse[AnalyticsByBrowserAndDevice],
+  dependencies=[Depends(require_scope("analytics:read"))],
+)
 async def get_link_devices_route(
   link_id: str, user_id: str = Depends(get_user_id), db: AsyncSession = Depends(get_db)
 ) -> ApiResponse[AnalyticsByBrowserAndDevice]:
@@ -68,7 +84,11 @@ async def get_link_devices_route(
   )
 
 
-@router.get("/referrers", response_model=ApiResponse[AnalyticsByReferrer])
+@router.get(
+  "/referrers",
+  response_model=ApiResponse[AnalyticsByReferrer],
+  dependencies=[Depends(require_scope("analytics:read"))],
+)
 async def get_link_referrers_route(
   link_id: str, user_id: str = Depends(get_user_id), db: AsyncSession = Depends(get_db)
 ) -> ApiResponse[AnalyticsByReferrer]:

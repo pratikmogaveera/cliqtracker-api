@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.redis import get_redis
-from app.deps import get_user_id
+from app.deps import get_user_id, require_scope
 from app.schemas.common import ApiResponse, PaginatedResponse
 from app.schemas.link import CreateLinkRequest, LinkResponse, UpdateLinkRequest
 from app.services.link import create_link, delete_link, get_link, get_links, update_link
@@ -13,7 +13,11 @@ from app.services.link import create_link, delete_link, get_link, get_links, upd
 router = APIRouter(prefix="/links", tags=["Link"])
 
 
-@router.get("/", response_model=ApiResponse[PaginatedResponse[LinkResponse]])
+@router.get(
+  "/",
+  response_model=ApiResponse[PaginatedResponse[LinkResponse]],
+  dependencies=[Depends(require_scope("links:read"))],
+)
 async def get_links_route(
   page: int = 1,
   limit: int = settings.PAGE_SIZE,
@@ -26,7 +30,11 @@ async def get_links_route(
   )
 
 
-@router.get("/{link_id}", response_model=ApiResponse[LinkResponse])
+@router.get(
+  "/{link_id}",
+  response_model=ApiResponse[LinkResponse],
+  dependencies=[Depends(require_scope("links:read"))],
+)
 async def get_link_route(
   link_id: str, user_id: str = Depends(get_user_id), db: AsyncSession = Depends(get_db)
 ) -> ApiResponse[LinkResponse]:
@@ -34,7 +42,11 @@ async def get_link_route(
   return ApiResponse(success=True, message="Link details fetched successfully.", data=link)
 
 
-@router.post("/", response_model=ApiResponse[LinkResponse])
+@router.post(
+  "/",
+  response_model=ApiResponse[LinkResponse],
+  dependencies=[Depends(require_scope("links:write"))],
+)
 async def create_link_route(
   payload: CreateLinkRequest,
   user_id: str = Depends(get_user_id),
@@ -44,7 +56,11 @@ async def create_link_route(
   return ApiResponse(success=True, message="Link created successfully.", data=link)
 
 
-@router.delete("/{link_id}", response_model=ApiResponse[None])
+@router.delete(
+  "/{link_id}",
+  response_model=ApiResponse[None],
+  dependencies=[Depends(require_scope("links:delete"))],
+)
 async def delete_link_route(
   link_id: str,
   user_id: str = Depends(get_user_id),
@@ -55,7 +71,11 @@ async def delete_link_route(
   return ApiResponse(success=True, message="Link deleted successfully.")
 
 
-@router.patch("/{link_id}", response_model=ApiResponse[LinkResponse])
+@router.patch(
+  "/{link_id}",
+  response_model=ApiResponse[LinkResponse],
+  dependencies=[Depends(require_scope("links:write"))],
+)
 async def update_link_route(
   link_id: str,
   data: UpdateLinkRequest,
