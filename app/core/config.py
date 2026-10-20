@@ -12,6 +12,12 @@ class Settings(BaseSettings):
   ENVIRONMENT: str = "dev"
   PAGE_SIZE: int = 25
   REDIS_LINK_CACHE_EXPIRY: int = 1 * 60 * 60  # 1hr
+  LIMIT_COOKIE: int = 30
+  LIMIT_API_KEY: int = 60
+  LIMIT_UNAUTH: int = 10
+  REFILL_COOKIE: float = 0.5  # per sec
+  REFILL_API_KEY: float = 1.0  # per sec
+  REFILL_UNAUTH: float = 0.1  # per sec
 
   model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

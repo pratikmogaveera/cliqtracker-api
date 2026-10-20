@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
 
 from app.core.config import settings
+from app.middleware import RateLimitMiddleware
 from app.routers.analytics import router as analytics_router
 from app.routers.auth import router as auth_router
 from app.routers.link import router as link_router
@@ -40,6 +41,9 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     status_code=exc.status_code,
     content={"success": False, "message": exc.detail, "data": None},
   )
+
+
+app.add_middleware(RateLimitMiddleware)
 
 
 app.include_router(analytics_router)

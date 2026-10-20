@@ -46,11 +46,13 @@ cliqtracker-api/
 ├── app/
 │   ├── main.py                   — app factory, lifespan, exception handler
 │   ├── deps.py                   — Annotated type aliases, get_user_id, require_scope, RequiredScope
-│   ├── core/
-│   │   ├── config.py             — pydantic-settings config
-│   │   ├── database.py           — async engine, session factory, get_db
-│   │   ├── redis.py              — get_redis dependency
-│   │   └── security.py           — password hashing, JWT encode/decode
+│   ├── middleware.py              — Token Bucket rate limiting middleware
+│   └── core/
+│       ├── config.py             — pydantic-settings config
+│       ├── database.py           — async engine, session factory, get_db
+│       ├── redis.py              — get_redis, get_arq_pool dependencies
+│       ├── security.py           — password hashing, JWT encode/decode
+│       └── rate_limit.py         — Token Bucket check function
 │   ├── models/
 │   │   ├── user.py               — User ORM model
 │   │   ├── link.py               — Link ORM model
@@ -120,7 +122,7 @@ cliqtracker-api/
 - [x] Link expiry
 - [x] Password protection
 - [x] API key auth
-- [ ] Rate limiting
+- [x] Rate limiting
 - [ ] Bulk CSV upload
 - [ ] QR code generation
 
