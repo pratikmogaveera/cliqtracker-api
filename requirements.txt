@@ -31,3 +31,7 @@ httpx==0.28.1
 # Testing
 pytest==8.3.5
 pytest-asyncio==0.24.0
+
+# QR Code
+qrcode[pil]==8.2
+Pillow==13.0.0

@@ -1,5 +1,9 @@
+import base64
 import json
+from io import BytesIO
 
+import qrcode
+import qrcode.constants
 from fastapi import HTTPException
 from nanoid import generate
 from redis.asyncio import Redis
@@ -12,7 +16,13 @@ from app.core.security import hash_password
 from app.models.click_event import ClickEvent
 from app.models.link import Link
 from app.schemas.common import PaginatedResponse
-from app.schemas.link import CachedLinkData, CreateLinkRequest, LinkResponse, UpdateLinkRequest
+from app.schemas.link import (
+  CachedLinkData,
+  CreateLinkRequest,
+  LinkResponse,
+  QRCodeImageResponse,
+  UpdateLinkRequest,
+)
 
 
 async def create_link(data: CreateLinkRequest, user_id: str, db: AsyncSession) -> LinkResponse:
@@ -145,3 +155,26 @@ async def delete_link(link_id: str, user_id: str, db: AsyncSession, redis: Redis
   await db.commit()
 
   await redis.delete(f"short:{link.short_code}")
+
+
+async def generate_link_qr_code(
+  link_id: str, user_id: str, db: AsyncSession
+) -> QRCodeImageResponse:
+  link = await _get_link_or_raise(link_id=link_id, user_id=user_id, db=db)
+
+  qr = qrcode.QRCode(
+    version=1,
+    error_correction=qrcode.constants.ERROR_CORRECT_L,
+    box_size=20,
+    border=4,
+  )
+  qr.add_data(f"{settings.FRONTEND_URL}/go/{link.short_code}")
+  qr.make(fit=True)
+
+  img = qr.make_image(fill_color="black", back_color="white")
+
+  buffered = BytesIO()
+  img.save(stream=buffered, format="PNG")
+
+  qr_base64_string = base64.b64encode(buffered.getvalue()).decode("utf-8")
+  return QRCodeImageResponse(image=qr_base64_string)

@@ -3,8 +3,15 @@ from fastapi import APIRouter
 from app.core.config import settings
 from app.deps import DB, CurrentUserId, RedisClient, RequiredScope
 from app.schemas.common import ApiResponse, PaginatedResponse
-from app.schemas.link import CreateLinkRequest, LinkResponse, UpdateLinkRequest
-from app.services.link import create_link, delete_link, get_link, get_links, update_link
+from app.schemas.link import CreateLinkRequest, LinkResponse, QRCodeImageResponse, UpdateLinkRequest
+from app.services.link import (
+  create_link,
+  delete_link,
+  generate_link_qr_code,
+  get_link,
+  get_links,
+  update_link,
+)
 
 router = APIRouter(prefix="/links", tags=["Link"])
 
@@ -79,3 +86,15 @@ async def update_link_route(
 ) -> ApiResponse[LinkResponse]:
   link = await update_link(link_id=link_id, data=data, user_id=user_id, db=db, redis=redis)
   return ApiResponse(success=True, message="Link updated successfully.", data=link)
+
+
+@router.get(
+  "/{link_id}/qr",
+  response_model=ApiResponse[QRCodeImageResponse],
+  dependencies=[RequiredScope("links:read")],
+)
+async def generate_link_qr_code_route(
+  link_id: str, user_id: CurrentUserId, db: DB
+) -> ApiResponse[QRCodeImageResponse]:
+  data = await generate_link_qr_code(link_id=link_id, user_id=user_id, db=db)
+  return ApiResponse(success=True, data=data, message="QR Code generated successfully.")

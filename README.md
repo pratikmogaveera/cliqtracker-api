@@ -124,7 +124,7 @@ cliqtracker-api/
 - [x] API key auth
 - [x] Rate limiting
 - [ ] Bulk CSV upload
-- [ ] QR code generation
+- [x] QR code generation
 
 ### Phase 5 — Polish + Deploy
 - [ ] Abuse detection
