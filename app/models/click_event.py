@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import ForeignKey, func
+from sqlalchemy import ForeignKey, Index, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -9,7 +9,14 @@ from app.core.database import Base
 
 class ClickEvent(Base):
   __tablename__ = "click_events"
-
+  __table_args__ = (
+    Index("ix_click_events_link_id_clicked_at", "link_id", "clicked_at"),
+    Index("ix_click_events_link_id_country", "link_id", "country"),
+    Index("ix_click_events_link_id_browser", "link_id", "browser"),
+    Index("ix_click_events_link_id_device_type", "link_id", "device_type"),
+    Index("ix_click_events_link_id_referrer", "link_id", "referrer"),
+    Index("ix_click_events_link_id_os", "link_id", "os"),
+  )
   id: Mapped[str] = mapped_column(primary_key=True, default=lambda: str(uuid4()))
   link_id: Mapped[str] = mapped_column(ForeignKey("links.id"), index=True)
   continent: Mapped[str | None]
