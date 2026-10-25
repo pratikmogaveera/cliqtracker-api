@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.security import verify_password
+from app.helper import extract_client_details
 from app.models.link import Link
 from app.schemas.link import CachedLinkData
 from app.schemas.redirect import UnlockRedirectUrlRequest, UnlockRedirectUrlResponse
@@ -18,14 +19,7 @@ async def get_redirect_url(
   short_code: str, request: Request, db: AsyncSession, redis: Redis, arq_pool: ArqRedis
 ) -> str:
   redirect_data: CachedLinkData
-  forwarded_for = request.headers.get("x-forwarded-for")
-  ip = (
-    forwarded_for.split(",")[0].strip()
-    if forwarded_for
-    else (request.client.host if request.client else None)
-  )
-  user_agent = request.headers.get("user-agent")
-  referrer = request.headers.get("referer")
+  ip, user_agent, referrer = extract_client_details(request)
   cached_data_string: str | None = await redis.get(f"short:{short_code}")
 
   if cached_data_string is None:
@@ -98,14 +92,7 @@ async def get_unlock_redirect_url(
     time=settings.REDIS_LINK_CACHE_EXPIRY,
   )
 
-  forwarded_for = request.headers.get("x-forwarded-for")
-  ip = (
-    forwarded_for.split(",")[0].strip()
-    if forwarded_for
-    else (request.client.host if request.client else None)
-  )
-  user_agent = request.headers.get("user-agent")
-  referrer = request.headers.get("referer")
+  ip, user_agent, referrer = extract_client_details(request)
 
   await arq_pool.enqueue_job("process_click", redirect_data.link_id, ip, user_agent, referrer)
 

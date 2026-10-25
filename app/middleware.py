@@ -4,6 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
 from app.core.rate_limit import check_rate_limit
+from app.helper import extract_client_details
 from app.schemas.common import ApiResponse
 
 
@@ -20,13 +21,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     elif api_key is not None:
       bucket_id = api_key
     else:
-      forwarded_for = request.headers.get("x-forwarded-for")
-      if forwarded_for:
-        bucket_id = forwarded_for.split(",")[0].strip()
-      elif request.client:
-        bucket_id = request.client.host
-      else:
-        bucket_id = "unknown"
+      ip, _, _ = extract_client_details(request)
+      bucket_id = ip if ip is not None else "unknown"
 
     if access_token is not None:
       max_tokens = settings.LIMIT_COOKIE

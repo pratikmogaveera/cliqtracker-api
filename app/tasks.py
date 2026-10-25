@@ -48,4 +48,5 @@ async def process_click(
       device_type=device_type,
       os=os,
       referrer=referrer,
+      ip=ip,
     )

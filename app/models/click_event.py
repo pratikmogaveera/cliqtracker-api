@@ -26,4 +26,5 @@ class ClickEvent(Base):
   device_type: Mapped[str | None]
   os: Mapped[str | None]
   referrer: Mapped[str | None]
+  hashed_ip: Mapped[str | None]
   clicked_at: Mapped[datetime] = mapped_column(server_default=func.now())

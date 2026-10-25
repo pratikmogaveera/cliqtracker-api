@@ -1,3 +1,5 @@
+from hashlib import sha256
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.click_event import ClickEvent
@@ -12,6 +14,7 @@ async def create_click_event(
   device_type: str | None,
   os: str | None,
   referrer: str | None,
+  ip: str | None,
   db: AsyncSession,
 ) -> None:
   db.add(
@@ -24,6 +27,7 @@ async def create_click_event(
       device_type=device_type,
       os=os,
       referrer=referrer,
+      hashed_ip=sha256(ip.encode()).hexdigest() if ip is not None else None,
     )
   )
   await db.commit()
