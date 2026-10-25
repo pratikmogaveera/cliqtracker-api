@@ -123,7 +123,7 @@ cliqtracker-api/
 - [x] Password protection
 - [x] API key auth
 - [x] Rate limiting
-- [ ] Bulk CSV upload
+- [~] Bulk CSV upload — intentionally skipped
 - [x] QR code generation
 
 ### Phase 5 — Polish + Deploy

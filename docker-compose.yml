@@ -17,5 +17,35 @@ services:
     ports:
       - 6379:6379
 
+  api:
+    container_name: ct-api
+    image: cliqtracker-api
+    build: .
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - 8000:8000
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://root:root@postgres:5432/cliqtracker
+      - REDIS_URL=redis://redis:6379
+    env_file:
+      - .env
+
+
+  worker:
+    container_name: ct-worker
+    depends_on:
+      - postgres
+      - redis
+    build: .
+    command: arq app.worker.WorkerSettings
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://root:root@postgres:5432/cliqtracker
+      - REDIS_URL=redis://redis:6379
+    env_file:
+      - .env
+
+
 volumes:
   ct-postgres-data:
