@@ -29,7 +29,7 @@ async def process_click(
       device_type = get_device_type(ua)
       os = ua.os.family
 
-    if ip:
+    if ip and ctx.get("geo_reader"):
       try:
         response: City = ctx["geo_reader"].city(ip)
         continent = response.continent.name

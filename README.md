@@ -128,8 +128,8 @@ cliqtracker-api/
 
 ### Phase 5 — Polish + Deploy
 - [ ] Abuse detection
-- [ ] Dockerfile + Docker Compose
-- [ ] Deploy to Railway
+- [x] Dockerfile + Docker Compose
+- [x] Deploy to Railway
 
 ## Resources
 

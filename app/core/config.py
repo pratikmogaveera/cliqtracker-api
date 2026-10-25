@@ -10,6 +10,8 @@ class Settings(BaseSettings):
   ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
   REFRESH_TOKEN_EXPIRE_DAYS: int = 7
   ENVIRONMENT: str = "dev"
+  MMDB_PATH: str = "GeoLite2-City.mmdb"
+  MAXMIND_LICENSE_KEY: str = ""
   PAGE_SIZE: int = 25
   REDIS_LINK_CACHE_EXPIRY: int = 1 * 60 * 60  # 1hr
   LIMIT_COOKIE: int = 30
