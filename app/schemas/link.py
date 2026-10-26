@@ -1,14 +1,16 @@
 from datetime import UTC, datetime
 
-from pydantic import AnyHttpUrl, BaseModel, ConfigDict, field_validator
+from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, field_validator
 
 
 class CreateLinkRequest(BaseModel):
-  title: str
+  title: str = Field(min_length=1, max_length=50)
   full_url: AnyHttpUrl
-  short_code: str | None = None
+  short_code: str | None = Field(
+    default=None, min_length=4, max_length=30, pattern=r"^[a-zA-Z0-9_-]+$"
+  )
   expiry_at: datetime | None = None
-  raw_password: str | None = None
+  raw_password: str | None = Field(default=None, min_length=4, max_length=25)
 
   @field_validator("expiry_at")
   @classmethod
@@ -19,12 +21,12 @@ class CreateLinkRequest(BaseModel):
 
 
 class UpdateLinkRequest(BaseModel):
-  title: str | None = None
+  title: str | None = Field(default=None, min_length=1, max_length=50)
   full_url: AnyHttpUrl | None = None
   is_active: bool | None = None
   expiry_at: datetime | None = None
   clear_expiry: bool = False
-  raw_password: str | None = None
+  raw_password: str | None = Field(default=None, min_length=4, max_length=25)
   clear_password: bool = False
 
   @field_validator("expiry_at")

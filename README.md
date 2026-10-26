@@ -136,7 +136,7 @@ cliqtracker-api/
 - [x] Analytics enhancements (date range, unique counts, continent breakdown)
 - [x] `is_active` check in redirect flow
 - [x] `secure=True` on cookies (environment-aware)
-- [ ] Field validations on request schemas
+- [x] Field validations on request schemas
 - [ ] `RequestValidationError` handler
 - [ ] Generic 500 handler
 

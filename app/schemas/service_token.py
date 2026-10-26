@@ -1,11 +1,11 @@
 from datetime import UTC, datetime
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class CreateServiceTokenRequest(BaseModel):
-  title: str
-  scopes: str
+  title: str = Field(min_length=1, max_length=50)
+  scopes: str = Field(min_length=1, pattern=r"^([a-z]+:[a-z]+)( [a-z]+:[a-z]+)*$")
   expiry_at: datetime
 
   @field_validator("expiry_at")
@@ -17,7 +17,7 @@ class CreateServiceTokenRequest(BaseModel):
 
 
 class UpdateServiceTokenRequest(BaseModel):
-  title: str | None = None
+  title: str | None = Field(default=None, min_length=1, max_length=50)
   revoke_token: bool = False
 
 
