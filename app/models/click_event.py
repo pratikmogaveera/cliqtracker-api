@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import ForeignKey, Index, func
+from sqlalchemy import DateTime, ForeignKey, Index, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -27,4 +27,4 @@ class ClickEvent(Base):
   os: Mapped[str | None]
   referrer: Mapped[str | None]
   hashed_ip: Mapped[str | None]
-  clicked_at: Mapped[datetime] = mapped_column(server_default=func.now())
+  clicked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
