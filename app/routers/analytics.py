@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter
 
 from app.deps import DB, CurrentUserId, RequiredScope
@@ -30,8 +32,12 @@ async def get_link_summary_router(
   link_id: str,
   user_id: CurrentUserId,
   db: DB,
+  start_date: date | None = None,
+  end_date: date | None = None,
 ) -> ApiResponse[AnalyticsSummaryResponse]:
-  data = await get_link_summary(link_id=link_id, user_id=user_id, db=db)
+  data = await get_link_summary(
+    link_id=link_id, start_date=start_date, end_date=end_date, user_id=user_id, db=db
+  )
   return ApiResponse(
     success=True, data=data, message="Link analytics summary fetched successfully."
   )
@@ -46,9 +52,18 @@ async def get_link_timeseries_router(
   link_id: str,
   user_id: CurrentUserId,
   db: DB,
+  start_date: date | None = None,
+  end_date: date | None = None,
   granularity: Granularity = Granularity.DAILY,
 ) -> ApiResponse[AnalyticsByTimeseries]:
-  data = await get_link_timeseries(link_id=link_id, user_id=user_id, granularity=granularity, db=db)
+  data = await get_link_timeseries(
+    link_id=link_id,
+    start_date=start_date,
+    end_date=end_date,
+    user_id=user_id,
+    granularity=granularity,
+    db=db,
+  )
   return ApiResponse(
     success=True, data=data, message="Link timeseries analytics fetched successfully."
   )
@@ -60,9 +75,15 @@ async def get_link_timeseries_router(
   dependencies=[RequiredScope("analytics:read")],
 )
 async def get_link_geo_route(
-  link_id: str, user_id: CurrentUserId, db: DB
+  link_id: str,
+  user_id: CurrentUserId,
+  db: DB,
+  start_date: date | None = None,
+  end_date: date | None = None,
 ) -> ApiResponse[AnalyticsByGeolocation]:
-  data = await get_link_geo(link_id=link_id, user_id=user_id, db=db)
+  data = await get_link_geo(
+    link_id=link_id, start_date=start_date, end_date=end_date, user_id=user_id, db=db
+  )
   return ApiResponse(
     success=True, data=data, message="Link geolocation analytics fetched successfully."
   )
@@ -74,12 +95,16 @@ async def get_link_geo_route(
   dependencies=[RequiredScope("analytics:read")],
 )
 async def get_link_devices_route(
-  link_id: str, user_id: CurrentUserId, db: DB
+  link_id: str,
+  user_id: CurrentUserId,
+  db: DB,
+  start_date: date | None = None,
+  end_date: date | None = None,
 ) -> ApiResponse[AnalyticsByBrowserAndDevice]:
-  data = await get_link_devices(link_id=link_id, user_id=user_id, db=db)
-  return ApiResponse(
-    success=True, data=data, message="Link device analytics fetched successfully."
+  data = await get_link_devices(
+    link_id=link_id, start_date=start_date, end_date=end_date, user_id=user_id, db=db
   )
+  return ApiResponse(success=True, data=data, message="Link device analytics fetched successfully.")
 
 
 @router.get(
@@ -88,9 +113,15 @@ async def get_link_devices_route(
   dependencies=[RequiredScope("analytics:read")],
 )
 async def get_link_referrers_route(
-  link_id: str, user_id: CurrentUserId, db: DB
+  link_id: str,
+  user_id: CurrentUserId,
+  db: DB,
+  start_date: date | None = None,
+  end_date: date | None = None,
 ) -> ApiResponse[AnalyticsByReferrer]:
-  data = await get_link_referrers(link_id=link_id, user_id=user_id, db=db)
+  data = await get_link_referrers(
+    link_id=link_id, start_date=start_date, end_date=end_date, user_id=user_id, db=db
+  )
   return ApiResponse(
     success=True, data=data, message="Link referrer analytics fetched successfully."
   )

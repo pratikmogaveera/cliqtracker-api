@@ -17,7 +17,9 @@ REDIS_SETTINGS = RedisSettings.from_dsn(dsn=settings.REDIS_URL)
 
 def _download_mmdb() -> None:
   if not settings.MAXMIND_LICENSE_KEY:
-    print("[Worker] MAXMIND_LICENSE_KEY not set — skipping mmdb download. Geo lookups will be unavailable.")
+    print(
+      "[Worker] MAXMIND_LICENSE_KEY not set — skipping mmdb download. Geo lookups will be unavailable."
+    )
     return
 
   print(f"[Worker] {settings.MMDB_PATH} not found — downloading from MaxMind...")
@@ -37,7 +39,7 @@ def _download_mmdb() -> None:
         if dir_path:
           os.makedirs(dir_path, exist_ok=True)
         with open(settings.MMDB_PATH, "wb") as out:
-          out.write(f.read())
+          out.write(f.read())  # type: ignore
         print("[Worker] GeoLite2-City.mmdb downloaded successfully.")
         return
 
@@ -51,7 +53,9 @@ async def startup(ctx):
     _download_mmdb()
 
   ctx["session_factory"] = AsyncSessionLocal
-  ctx["geo_reader"] = database.Reader(settings.MMDB_PATH) if os.path.exists(settings.MMDB_PATH) else None
+  ctx["geo_reader"] = (
+    database.Reader(settings.MMDB_PATH) if os.path.exists(settings.MMDB_PATH) else None
+  )
 
 
 async def shutdown(ctx):

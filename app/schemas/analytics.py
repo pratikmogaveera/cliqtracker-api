@@ -7,11 +7,17 @@ class TimeseriesItem(BaseModel):
   count: int
 
 
+class ReferrerItem(BaseModel):
+  referrer: str
+  total_clicks: int
+  unique_clicks: int
+
+
 class AnalyticsSummaryResponse(BaseModel):
   total_clicks: int
-  top_country: str | None
-  top_browser: str | None
-  top_referrer: str | None
+  unique_clicks: int
+  countries_reached: int
+  avg_clicks_per_day: int
 
 
 class AnalyticsByTimeseries(BaseModel):
@@ -19,7 +25,8 @@ class AnalyticsByTimeseries(BaseModel):
 
 
 class AnalyticsByGeolocation(BaseModel):
-  data: dict[str, int]
+  continents: dict[str, int]
+  countries: dict[str, int]
 
 
 class AnalyticsByBrowserAndDevice(BaseModel):
@@ -29,4 +36,4 @@ class AnalyticsByBrowserAndDevice(BaseModel):
 
 
 class AnalyticsByReferrer(BaseModel):
-  data: dict[str, int]
+  data: list[ReferrerItem]

@@ -1,7 +1,8 @@
+from datetime import UTC, date, datetime, time
 from enum import Enum
 
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.click_event import ClickEvent
@@ -12,8 +13,22 @@ from app.schemas.analytics import (
   AnalyticsByReferrer,
   AnalyticsByTimeseries,
   AnalyticsSummaryResponse,
+  ReferrerItem,
   TimeseriesItem,
 )
+
+
+def _date_filters(start_date: date | None, end_date: date | None) -> list:
+  filters = []
+  if start_date:
+    filters.append(
+      ClickEvent.clicked_at >= datetime.combine(start_date, time.min).replace(tzinfo=UTC)
+    )
+  if end_date:
+    filters.append(
+      ClickEvent.clicked_at <= datetime.combine(end_date, time.max).replace(tzinfo=UTC)
+    )
+  return filters
 
 
 async def _verify_link_ownership(link_id: str, user_id: str, db: AsyncSession) -> None:
@@ -31,65 +46,59 @@ class Granularity(Enum):
 
 
 async def get_link_summary(
-  link_id: str, user_id: str, db: AsyncSession
+  link_id: str, user_id: str, start_date: date | None, end_date: date | None, db: AsyncSession
 ) -> AnalyticsSummaryResponse:
   await _verify_link_ownership(link_id=link_id, user_id=user_id, db=db)
-  query = select(func.count(ClickEvent.id)).where(ClickEvent.link_id == link_id)
-  total = (await db.execute(query)).scalar() or 0
 
-  query = (
-    select(ClickEvent.browser, func.count(ClickEvent.id))
-    .where(ClickEvent.link_id == link_id)
-    .where(ClickEvent.browser.is_not(None))
-    .group_by(ClickEvent.browser)
-    .order_by(func.count(ClickEvent.id).desc())
-    .limit(1)
+  query = select(
+    func.count(ClickEvent.id),
+    func.count(distinct(ClickEvent.hashed_ip)),
+    func.count(distinct(ClickEvent.country)),
+    func.min(ClickEvent.clicked_at),
+    func.max(ClickEvent.clicked_at),
+  ).where(ClickEvent.link_id == link_id, *_date_filters(start_date, end_date))
+
+  response = (await db.execute(query)).first()
+
+  total_clicks, unique_clicks, countries_reached, min_date, max_date = (
+    response if response else (0, 0, 0, None, None)
   )
-  result = await db.execute(query)
-  rows = result.all()
 
-  browser = rows[0][0] if rows else None
+  if not total_clicks or min_date is None or max_date is None:
+    return AnalyticsSummaryResponse(
+      total_clicks=0, unique_clicks=0, countries_reached=0, avg_clicks_per_day=0
+    )
 
-  query = (
-    select(ClickEvent.country, func.count(ClickEvent.id))
-    .where(ClickEvent.link_id == link_id)
-    .where(ClickEvent.country.is_not(None))
-    .group_by(ClickEvent.country)
-    .order_by(func.count(ClickEvent.id).desc())
-    .limit(1)
-  )
-  result = await db.execute(query)
-  rows = result.all()
+  first_click = min_date.replace(tzinfo=UTC)
+  last_click = max_date.replace(tzinfo=UTC)
 
-  country = rows[0][0] if rows else None
-  query = (
-    select(ClickEvent.referrer, func.count(ClickEvent.id))
-    .where(ClickEvent.link_id == link_id)
-    .where(ClickEvent.referrer.is_not(None))
-    .group_by(ClickEvent.referrer)
-    .order_by(func.count(ClickEvent.id).desc())
-    .limit(1)
-  )
-  result = await db.execute(query)
-  rows = result.all()
-
-  referrer = rows[0][0] if rows else None
+  days = (last_click - first_click).days or 1
+  avg_clicks_per_day = total_clicks // days
 
   return AnalyticsSummaryResponse(
-    total_clicks=total, top_browser=browser, top_country=country, top_referrer=referrer
+    total_clicks=total_clicks,
+    unique_clicks=unique_clicks,
+    countries_reached=countries_reached,
+    avg_clicks_per_day=avg_clicks_per_day,
   )
 
 
 async def get_link_timeseries(
-  link_id: str, user_id: str, db: AsyncSession, granularity: Granularity = Granularity.HOURLY
+  link_id: str,
+  user_id: str,
+  start_date: date | None,
+  end_date: date | None,
+  db: AsyncSession,
+  granularity: Granularity = Granularity.HOURLY,
 ) -> AnalyticsByTimeseries:
   await _verify_link_ownership(link_id=link_id, user_id=user_id, db=db)
+
   query = (
     select(
       func.date_trunc(granularity.value, ClickEvent.clicked_at).label("bucket"),
       func.count(ClickEvent.id),
     )
-    .where(ClickEvent.link_id == link_id)
+    .where(ClickEvent.link_id == link_id, *_date_filters(start_date, end_date))
     .group_by("bucket")
     .order_by("bucket")
   )
@@ -108,84 +117,83 @@ async def get_link_timeseries(
   return AnalyticsByTimeseries(data=result)
 
 
-async def get_link_geo(link_id: str, user_id: str, db: AsyncSession) -> AnalyticsByGeolocation:
+async def get_link_geo(
+  link_id: str, user_id: str, start_date: date | None, end_date: date | None, db: AsyncSession
+) -> AnalyticsByGeolocation:
   await _verify_link_ownership(link_id=link_id, user_id=user_id, db=db)
-  data = dict()
+
+  continents = {}
+  countries = {}
+
   query = (
-    select(ClickEvent.country, func.count(ClickEvent.id))
-    .where(ClickEvent.link_id == link_id)
-    .group_by(ClickEvent.country)
+    select(ClickEvent.country, ClickEvent.continent, func.count(ClickEvent.id))
+    .where(ClickEvent.link_id == link_id, *_date_filters(start_date, end_date))
+    .group_by(ClickEvent.country, ClickEvent.continent)
     .order_by(func.count(ClickEvent.id).desc())
   )
-  result = await db.execute(query)
-  rows = result.all()
 
-  for country, count in rows:
-    if country is not None:
-      data[country] = count
+  rows = (await db.execute(query)).all()
 
-  return AnalyticsByGeolocation(data=data)
+  for country, continent, count in rows:
+    if country:
+      countries[country] = count
+    if continent:
+      continents[continent] = continents.get(continent, 0) + count
+
+  return AnalyticsByGeolocation(countries=countries, continents=continents)
 
 
 async def get_link_devices(
-  link_id: str, user_id: str, db: AsyncSession
+  link_id: str, user_id: str, start_date: date | None, end_date: date | None, db: AsyncSession
 ) -> AnalyticsByBrowserAndDevice:
   await _verify_link_ownership(link_id=link_id, user_id=user_id, db=db)
-  query = (
-    select(ClickEvent.browser, func.count(ClickEvent.id))
-    .where(ClickEvent.link_id == link_id)
-    .group_by(ClickEvent.browser)
-    .order_by(func.count(ClickEvent.id).desc())
-  )
-  result = await db.execute(query)
-  rows = result.all()
-  browser = dict()
-  for key, value in rows:
-    if key is not None:
-      browser[key] = value
 
   query = (
-    select(ClickEvent.device_type, func.count(ClickEvent.id))
-    .where(ClickEvent.link_id == link_id)
-    .group_by(ClickEvent.device_type)
+    select(ClickEvent.browser, ClickEvent.device_type, ClickEvent.os, func.count(ClickEvent.id))
+    .where(ClickEvent.link_id == link_id, *_date_filters(start_date, end_date))
+    .group_by(ClickEvent.browser, ClickEvent.device_type, ClickEvent.os)
     .order_by(func.count(ClickEvent.id).desc())
   )
-  result = await db.execute(query)
-  rows = result.all()
-  device_type = dict()
-  for key, value in rows:
-    if key is not None:
-      device_type[key] = value
 
-  query = (
-    select(ClickEvent.os, func.count(ClickEvent.id))
-    .where(ClickEvent.link_id == link_id)
-    .group_by(ClickEvent.os)
-    .order_by(func.count(ClickEvent.id).desc())
-  )
-  result = await db.execute(query)
-  rows = result.all()
-  os = dict()
-  for key, value in rows:
-    if key is not None:
-      os[key] = value
+  rows = (await db.execute(query)).all()
 
-  return AnalyticsByBrowserAndDevice(browsers=browser, device_types=device_type, os=os)
+  browsers: dict[str, int] = {}
+  device_types: dict[str, int] = {}
+  os_dict: dict[str, int] = {}
+
+  for browser, device_type, os, count in rows:
+    if browser:
+      browsers[browser] = browsers.get(browser, 0) + count
+    if device_type:
+      device_types[device_type] = device_types.get(device_type, 0) + count
+    if os:
+      os_dict[os] = os_dict.get(os, 0) + count
+
+  return AnalyticsByBrowserAndDevice(browsers=browsers, device_types=device_types, os=os_dict)
 
 
-async def get_link_referrers(link_id: str, user_id: str, db: AsyncSession) -> AnalyticsByReferrer:
+async def get_link_referrers(
+  link_id: str, user_id: str, start_date: date | None, end_date: date | None, db: AsyncSession
+) -> AnalyticsByReferrer:
   await _verify_link_ownership(link_id=link_id, user_id=user_id, db=db)
+
   query = (
-    select(ClickEvent.referrer, func.count(ClickEvent.id))
-    .where(ClickEvent.link_id == link_id)
+    select(
+      ClickEvent.referrer, func.count(ClickEvent.id), func.count(distinct(ClickEvent.hashed_ip))
+    )
+    .where(ClickEvent.link_id == link_id, *_date_filters(start_date, end_date))
     .group_by(ClickEvent.referrer)
     .order_by(func.count(ClickEvent.id).desc())
   )
-  result = await db.execute(query)
-  rows = result.all()
-  referrer = dict()
-  for key, value in rows:
-    if key is not None:
-      referrer[key] = value
 
-  return AnalyticsByReferrer(data=referrer)
+  rows = (await db.execute(query)).all()
+
+  result = []
+  for key, count, unique_count in rows:
+    result.append(
+      ReferrerItem(
+        referrer=key if key else "Direct", total_clicks=count, unique_clicks=unique_count
+      )
+    )
+
+  return AnalyticsByReferrer(data=result)

@@ -174,7 +174,7 @@ async def generate_link_qr_code(
   img = qr.make_image(fill_color="black", back_color="white")
 
   buffered = BytesIO()
-  img.save(stream=buffered, format="PNG")
+  img.save(stream=buffered, format="PNG")  # type: ignore
 
   qr_base64_string = base64.b64encode(buffered.getvalue()).decode("utf-8")
   return QRCodeImageResponse(image=qr_base64_string)
