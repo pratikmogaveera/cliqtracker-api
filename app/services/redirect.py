@@ -34,6 +34,7 @@ async def get_redirect_url(
       full_url=response.full_url,
       expiry_at=response.expiry_at,
       is_protected=response.hashed_password is not None,
+      is_active=response.is_active,
     )
     await redis.setex(
       name=f"short:{short_code}",
@@ -42,6 +43,9 @@ async def get_redirect_url(
     )
   else:
     redirect_data = CachedLinkData.model_validate_json(cached_data_string)
+
+  if not redirect_data.is_active:
+    raise HTTPException(410, "The link has been deactivated.")
 
   if redirect_data.expiry_at is not None:
     now = datetime.now(UTC)
@@ -69,6 +73,9 @@ async def get_unlock_redirect_url(
   if response is None:
     raise HTTPException(404, "Link not found.")
 
+  if not response.is_active:
+    raise HTTPException(410, "The link has been deactivated.")
+
   if response.expiry_at is not None:
     now = datetime.now(UTC)
     if now > response.expiry_at:
@@ -85,6 +92,7 @@ async def get_unlock_redirect_url(
     full_url=response.full_url,
     expiry_at=response.expiry_at,
     is_protected=response.hashed_password is not None,
+    is_active=response.is_active,
   )
   await redis.setex(
     name=f"short:{short_code}",

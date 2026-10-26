@@ -57,6 +57,7 @@ class CachedLinkData(BaseModel):
   full_url: str
   expiry_at: datetime | None = None
   is_protected: bool = False
+  is_active: bool = True
 
 
 class QRCodeImageResponse(BaseModel):

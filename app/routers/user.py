@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Response
 
+from app.core.config import settings
 from app.deps import DB, CookieOnly, CurrentUserId, RedisClient
 from app.schemas.common import ApiResponse
 from app.schemas.user import CreateUserRequest, UpdateUserRequest, UserResponse
@@ -25,8 +26,20 @@ async def create_user_route(
   new_user = await create_user(data=payload, db=db)
 
   access_token, refresh_token = await create_session(user_id=new_user.id, redis=redis)
-  response.set_cookie(key="access_token", value=access_token, httponly=True, samesite="lax")
-  response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, samesite="lax")
+  response.set_cookie(
+    key="access_token",
+    value=access_token,
+    httponly=True,
+    samesite="lax",
+    secure=settings.ENVIRONMENT == "prod",
+  )
+  response.set_cookie(
+    key="refresh_token",
+    value=refresh_token,
+    httponly=True,
+    samesite="lax",
+    secure=settings.ENVIRONMENT == "prod",
+  )
 
   return ApiResponse(success=True, message="User created successfully.", data=new_user)
 

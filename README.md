@@ -130,6 +130,15 @@ cliqtracker-api/
 - [ ] Abuse detection
 - [x] Dockerfile + Docker Compose
 - [x] Deploy to Railway
+- [x] CORS middleware (environment-aware origins)
+- [x] Composite indexes (analytics + owner_id)
+- [x] `hashed_ip` for unique visitor tracking
+- [x] Analytics enhancements (date range, unique counts, continent breakdown)
+- [x] `is_active` check in redirect flow
+- [x] `secure=True` on cookies (environment-aware)
+- [ ] Field validations on request schemas
+- [ ] `RequestValidationError` handler
+- [ ] Generic 500 handler
 
 ## Resources
 

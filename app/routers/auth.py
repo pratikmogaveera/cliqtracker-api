@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, Response
 
+from app.core.config import settings
 from app.deps import DB, CookieOnly, RedisClient
 from app.schemas.common import ApiResponse
 from app.schemas.user import LoginUserRequest, UserResponse
@@ -18,8 +19,20 @@ async def authenticate_user_route(
   user_details, access_token, refresh_token = await authenticate_user(
     data=payload, db=db, redis=redis
   )
-  response.set_cookie(key="access_token", value=access_token, httponly=True, samesite="lax")
-  response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, samesite="lax")
+  response.set_cookie(
+    key="access_token",
+    value=access_token,
+    httponly=True,
+    samesite="lax",
+    secure=settings.ENVIRONMENT == "prod",
+  )
+  response.set_cookie(
+    key="refresh_token",
+    value=refresh_token,
+    httponly=True,
+    samesite="lax",
+    secure=settings.ENVIRONMENT == "prod",
+  )
 
   return ApiResponse(success=True, data=user_details, message="Logged in successfully!")
 
@@ -54,7 +67,19 @@ async def refresh_access_token_route(
     refresh_token=refresh_token, redis=redis
   )
 
-  response.set_cookie(key="access_token", value=new_access_token, httponly=True, samesite="lax")
-  response.set_cookie(key="refresh_token", value=new_refresh_token, httponly=True, samesite="lax")
+  response.set_cookie(
+    key="access_token",
+    value=new_access_token,
+    httponly=True,
+    samesite="lax",
+    secure=settings.ENVIRONMENT == "prod",
+  )
+  response.set_cookie(
+    key="refresh_token",
+    value=new_refresh_token,
+    httponly=True,
+    samesite="lax",
+    secure=settings.ENVIRONMENT == "prod",
+  )
 
   return ApiResponse(success=True, message="Session refreshed successfully.")

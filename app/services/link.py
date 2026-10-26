@@ -136,6 +136,7 @@ async def update_link(
     full_url=link.full_url,
     expiry_at=link.expiry_at,
     is_protected=link.hashed_password is not None,
+    is_active=link.is_active,
   )
 
   await redis.setex(
