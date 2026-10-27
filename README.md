@@ -56,14 +56,16 @@ cliqtracker-api/
 │   ├── models/
 │   │   ├── user.py               — User ORM model
 │   │   ├── link.py               — Link ORM model
-│   │   └── click_event.py        — ClickEvent ORM model
+│   │   ├── click_event.py        — ClickEvent ORM model
+│   │   └── error_log.py          — ErrorLog ORM model
 │   ├── schemas/
 │   │   ├── common.py             — ApiResponse, PaginatedResponse
 │   │   ├── user.py               — user request/response schemas
 │   │   ├── link.py               — link request/response schemas
 │   │   ├── click_event.py        — click event response schema
 │   │   ├── analytics.py          — analytics response schemas
-│   │   └── redirect.py           — unlock request/response schemas
+│   │   ├── redirect.py           — unlock request/response schemas
+│   │   └── error_log.py          — error log create schema
 │   ├── routers/
 │   │   ├── auth.py               — login, refresh, logout
 │   │   ├── user.py               — register, me, update, delete
@@ -78,7 +80,8 @@ cliqtracker-api/
 │   │   ├── redirect.py           — Redis cache-aside + DB fallback
 │   │   ├── click_event.py        — click event operations
 │   │   ├── analytics.py          — analytics queries (summary, timeseries, geo, devices, referrers)
-│   │   └── service_token.py      — service token CRUD + rotation logic
+│   │   ├── service_token.py      — service token CRUD + rotation logic
+│   │   └── error_log.py          — error log insert
 │   ├── tasks.py                  — ARQ job definitions (process_click)
 │   └── worker.py                 — ARQ WorkerSettings, startup/shutdown
 ├── alembic/                      — migrations
@@ -138,7 +141,7 @@ cliqtracker-api/
 - [x] `secure=True` on cookies (environment-aware)
 - [x] Field validations on request schemas
 - [x] `RequestValidationError` handler
-- [ ] Generic 500 handler
+- [x] Generic 500 handler + `error_logs` table
 
 ## Resources
 

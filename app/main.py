@@ -1,3 +1,4 @@
+import traceback as tb
 from contextlib import asynccontextmanager
 
 from arq import create_pool
@@ -9,6 +10,8 @@ from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
 
 from app.core.config import get_user_readable_validation_error, settings
+from app.core.database import AsyncSessionLocal
+from app.core.security import authenticate_jwt
 from app.middleware import RateLimitMiddleware
 from app.routers.analytics import router as analytics_router
 from app.routers.auth import router as auth_router
@@ -16,6 +19,8 @@ from app.routers.link import router as link_router
 from app.routers.redirect import router as redirect_router
 from app.routers.service_token import router as service_token_router
 from app.routers.user import router as user_router
+from app.schemas.error_log import CreateErrorLog
+from app.services.error_log import create_error_log
 
 REDIS_SETTINGS = RedisSettings.from_dsn(settings.REDIS_URL)
 
@@ -59,6 +64,41 @@ async def pydantic_validation_error_handler(request: Request, exc: RequestValida
       "message": get_user_readable_validation_error(type=error["type"], ctx=error.get("ctx")),
       "data": None,
     },
+  )
+
+
+@app.exception_handler(Exception)
+async def internal_server_error_handler(request: Request, exc: Exception):
+  token = request.cookies.get("access_token")
+  user_id = None
+  if token:
+    try:
+      user_id = authenticate_jwt(token=token)
+    except Exception:
+      pass
+
+  traceback_str = tb.format_exc()
+  trimmed = "\n".join(traceback_str.splitlines()[-20:])
+
+  log_data = CreateErrorLog(
+    path=request.url.path,
+    method=str(request.method),
+    user_id=user_id,
+    traceback=trimmed,
+    error_type=type(exc).__name__,
+    error_message=str(exc),
+  )
+
+  async with AsyncSessionLocal() as db:
+    try:
+      await create_error_log(data=log_data, db=db)
+    except Exception:
+      # TODO: email notification
+      pass
+
+  return JSONResponse(
+    status_code=500,
+    content={"success": False, "message": "Something went wrong. Please try again.", "data": None},
   )
 
 
