@@ -25,3 +25,22 @@ class Settings(BaseSettings):
 
 
 settings = Settings()  # type: ignore
+
+
+def get_user_readable_validation_error(type: str, ctx) -> str:
+  if type == "missing":
+    return "Please provide all the required fields."
+  if type == "string_too_short" and ctx is not None:
+    return f"Must be at least {ctx['min_length']} characters."
+  if type == "string_too_long" and ctx is not None:
+    return f"Must be at most {ctx['max_length']} characters."
+  if type == "string_pattern_mismatch":
+    return "Please provide input in correct format."
+  if type == "url_parsing":
+    return "Please provide a valid URL."
+  if type == "value_error" and ctx is not None:
+    return ctx["reason"]
+  if type == "datetime_parsing":
+    return "Please provide a valid date."
+
+  return "Invalid input."

@@ -3,11 +3,12 @@ from contextlib import asynccontextmanager
 from arq import create_pool
 from arq.connections import RedisSettings
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
 
-from app.core.config import settings
+from app.core.config import get_user_readable_validation_error, settings
 from app.middleware import RateLimitMiddleware
 from app.routers.analytics import router as analytics_router
 from app.routers.auth import router as auth_router
@@ -45,6 +46,19 @@ async def http_exception_handler(request: Request, exc: HTTPException):
   return JSONResponse(
     status_code=exc.status_code,
     content={"success": False, "message": exc.detail, "data": None},
+  )
+
+
+@app.exception_handler(RequestValidationError)
+async def pydantic_validation_error_handler(request: Request, exc: RequestValidationError):
+  error = exc.errors()[0]
+  return JSONResponse(
+    status_code=422,
+    content={
+      "success": False,
+      "message": get_user_readable_validation_error(type=error["type"], ctx=error.get("ctx")),
+      "data": None,
+    },
   )
 
 

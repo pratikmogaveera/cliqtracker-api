@@ -137,7 +137,7 @@ cliqtracker-api/
 - [x] `is_active` check in redirect flow
 - [x] `secure=True` on cookies (environment-aware)
 - [x] Field validations on request schemas
-- [ ] `RequestValidationError` handler
+- [x] `RequestValidationError` handler
 - [ ] Generic 500 handler
 
 ## Resources
