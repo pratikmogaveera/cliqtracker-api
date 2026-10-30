@@ -13,6 +13,12 @@ class ReferrerItem(BaseModel):
   unique_clicks: int
 
 
+class ParamItem(BaseModel):
+  param: str
+  value: str
+  count: int
+
+
 class AnalyticsSummaryResponse(BaseModel):
   total_clicks: int
   unique_clicks: int
@@ -37,3 +43,7 @@ class AnalyticsByBrowserAndDevice(BaseModel):
 
 class AnalyticsByReferrer(BaseModel):
   data: list[ReferrerItem]
+
+
+class AnalyticsByParams(BaseModel):
+  data: list[ParamItem]

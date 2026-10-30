@@ -6,6 +6,7 @@ from app.deps import DB, CurrentUserId, RequiredScope
 from app.schemas.analytics import (
   AnalyticsByBrowserAndDevice,
   AnalyticsByGeolocation,
+  AnalyticsByParams,
   AnalyticsByReferrer,
   AnalyticsByTimeseries,
   AnalyticsSummaryResponse,
@@ -15,6 +16,7 @@ from app.services.analytics import (
   Granularity,
   get_link_devices,
   get_link_geo,
+  get_link_params,
   get_link_referrers,
   get_link_summary,
   get_link_timeseries,
@@ -125,3 +127,21 @@ async def get_link_referrers_route(
   return ApiResponse(
     success=True, data=data, message="Link referrer analytics fetched successfully."
   )
+
+
+@router.get(
+  "/params",
+  response_model=ApiResponse[AnalyticsByParams],
+  dependencies=[RequiredScope("analytics:read")],
+)
+async def get_link_params_route(
+  link_id: str,
+  user_id: CurrentUserId,
+  db: DB,
+  start_date: date | None = None,
+  end_date: date | None = None,
+) -> ApiResponse[AnalyticsByParams]:
+  data = await get_link_params(
+    link_id=link_id, start_date=start_date, end_date=end_date, user_id=user_id, db=db
+  )
+  return ApiResponse(success=True, data=data, message="Link params analytics fetched successfully.")

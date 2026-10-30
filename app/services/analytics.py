@@ -2,7 +2,7 @@ from datetime import UTC, date, datetime, time
 from enum import Enum
 
 from fastapi import HTTPException
-from sqlalchemy import distinct, func, select
+from sqlalchemy import distinct, func, select, true
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.click_event import ClickEvent
@@ -10,9 +10,11 @@ from app.models.link import Link
 from app.schemas.analytics import (
   AnalyticsByBrowserAndDevice,
   AnalyticsByGeolocation,
+  AnalyticsByParams,
   AnalyticsByReferrer,
   AnalyticsByTimeseries,
   AnalyticsSummaryResponse,
+  ParamItem,
   ReferrerItem,
   TimeseriesItem,
 )
@@ -197,3 +199,26 @@ async def get_link_referrers(
     )
 
   return AnalyticsByReferrer(data=result)
+
+
+async def get_link_params(
+  link_id: str, user_id: str, start_date: date | None, end_date: date | None, db: AsyncSession
+) -> AnalyticsByParams:
+  data = []
+  await _verify_link_ownership(link_id=link_id, user_id=user_id, db=db)
+  kv = func.jsonb_each_text(ClickEvent.params).table_valued("key", "value").lateral()
+  query = (
+    select(kv.c.key, kv.c.value, func.count().label("clicks"))
+    .select_from(ClickEvent)
+    .join(kv, true())
+    .where(ClickEvent.link_id == link_id, *_date_filters(start_date, end_date))
+    .group_by(kv.c.key, kv.c.value)
+    .order_by(func.count().desc())
+  )
+
+  result = (await db.execute(query)).all()
+
+  for param, value, count in result:
+    data.append(ParamItem(param=param, value=value, count=count))
+
+  return AnalyticsByParams(data=data)
