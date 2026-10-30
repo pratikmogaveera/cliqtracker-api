@@ -55,7 +55,11 @@ async def get_redirect_url(
   if redirect_data.is_protected:
     return f"{settings.FRONTEND_URL}/unlock/{short_code}"
 
-  await arq_pool.enqueue_job("process_click", redirect_data.link_id, ip, user_agent, referrer)
+  params = dict(request.query_params) or None
+
+  await arq_pool.enqueue_job(
+    "process_click", redirect_data.link_id, ip, user_agent, referrer, params
+  )
   return redirect_data.full_url
 
 
@@ -102,6 +106,10 @@ async def get_unlock_redirect_url(
 
   ip, user_agent, referrer = extract_client_details(request)
 
-  await arq_pool.enqueue_job("process_click", redirect_data.link_id, ip, user_agent, referrer)
+  params = dict(request.query_params) or None
+
+  await arq_pool.enqueue_job(
+    "process_click", redirect_data.link_id, ip, user_agent, referrer, params
+  )
 
   return UnlockRedirectUrlResponse(full_url=response.full_url)

@@ -4,7 +4,7 @@ FastAPI backend for Cliqtracker — URL shortener + click analytics platform.
 
 ## Purpose
 
-Handles link management, JWT auth with httpOnly cookies, 302 redirects with Redis caching, and async click processing (geo + UA parsing) via ARQ background worker. Deployed on Railway.
+Handles link management, JWT auth with httpOnly cookies, 302 redirects with Redis caching, async click processing (geo + UA parsing + query params tracking) via ARQ background worker. Deployed on Railway.
 
 ## Tech Stack
 
@@ -142,6 +142,7 @@ cliqtracker-api/
 - [x] Field validations on request schemas
 - [x] `RequestValidationError` handler
 - [x] Generic 500 handler + `error_logs` table
+- [x] Query params tracking (`params` JSONB + GIN index)
 
 ## Resources
 

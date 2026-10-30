@@ -1,3 +1,5 @@
+from typing import Any
+
 from geoip2.errors import AddressNotFoundError
 from geoip2.models import City
 from user_agents import parse
@@ -18,7 +20,12 @@ def get_device_type(ua: UserAgent) -> str | None:
 
 
 async def process_click(
-  ctx, link_id: str, ip: str | None, user_agent: str | None, referrer: str | None
+  ctx,
+  link_id: str,
+  ip: str | None,
+  user_agent: str | None,
+  referrer: str | None,
+  params: dict[str, Any] | None,
 ) -> None:
   async with ctx["session_factory"]() as session:
     continent = country = state = browser = device_type = os = None
@@ -49,4 +56,5 @@ async def process_click(
       os=os,
       referrer=referrer,
       ip=ip,
+      params=params,
     )
