@@ -4,7 +4,12 @@ from app.core.config import settings
 from app.deps import DB, CookieOnly, RedisClient
 from app.schemas.common import ApiResponse
 from app.schemas.user import LoginUserRequest, UserResponse
-from app.services.auth import authenticate_user, logout_user, refresh_access_token
+from app.services.auth import (
+  authenticate_user,
+  get_refresh_token_ttl,
+  logout_user,
+  refresh_access_token,
+)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -32,6 +37,7 @@ async def authenticate_user_route(
     httponly=True,
     samesite="lax",
     secure=settings.ENVIRONMENT == "prod",
+    max_age=get_refresh_token_ttl(remember_me=payload.remember_me),
   )
 
   return ApiResponse(success=True, data=user_details, message="Logged in successfully!")
@@ -58,25 +64,15 @@ async def refresh_access_token_route(
 ) -> ApiResponse[None]:
   refresh_token = request.cookies.get("refresh_token")
   response.delete_cookie("access_token")
-  response.delete_cookie("refresh_token")
 
   if refresh_token is None:
     raise HTTPException(401, "Your session has expired. Please log in again.")
 
-  new_access_token, new_refresh_token = await refresh_access_token(
-    refresh_token=refresh_token, redis=redis
-  )
+  new_access_token = await refresh_access_token(refresh_token=refresh_token, redis=redis)
 
   response.set_cookie(
     key="access_token",
     value=new_access_token,
-    httponly=True,
-    samesite="lax",
-    secure=settings.ENVIRONMENT == "prod",
-  )
-  response.set_cookie(
-    key="refresh_token",
-    value=new_refresh_token,
     httponly=True,
     samesite="lax",
     secure=settings.ENVIRONMENT == "prod",

@@ -9,7 +9,8 @@ class Settings(BaseSettings):
   JWT_SECRET: SecretStr
   JWT_ALGORITHM: str = "HS256"
   ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
-  REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+  REFRESH_TOKEN_EXPIRE_DAYS: int = 1
+  REMEMBER_ME_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
   ENVIRONMENT: str = "dev"
   MMDB_PATH: str = "GeoLite2-City.mmdb"
   MAXMIND_LICENSE_KEY: str = ""

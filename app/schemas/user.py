@@ -20,6 +20,7 @@ class UpdateUserRequest(BaseModel):
 class LoginUserRequest(BaseModel):
   email: EmailStr
   raw_password: str = Field(min_length=8, max_length=25)
+  remember_me: bool = False
 
 
 class UserResponse(BaseModel):
