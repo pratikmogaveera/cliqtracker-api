@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Response
 
 from app.core.config import settings
-from app.deps import DB, CookieOnly, CurrentUserId, RedisClient
+from app.deps import DB, ArqClient, CookieOnly, CurrentUserId, RedisClient
 from app.schemas.common import ApiResponse
 from app.schemas.user import CreateUserRequest, UpdateUserRequest, UserResponse
 from app.services.auth import create_session
@@ -18,12 +18,9 @@ async def get_user_route(user_id: CurrentUserId, db: DB) -> ApiResponse[UserResp
 
 @router.post("/register", response_model=ApiResponse[UserResponse])
 async def create_user_route(
-  payload: CreateUserRequest,
-  response: Response,
-  db: DB,
-  redis: RedisClient,
+  payload: CreateUserRequest, response: Response, db: DB, redis: RedisClient, arq_pool: ArqClient
 ) -> ApiResponse[UserResponse]:
-  new_user = await create_user(data=payload, db=db)
+  new_user = await create_user(data=payload, db=db, arq_pool=arq_pool)
 
   access_token, refresh_token = await create_session(user_id=new_user.id, redis=redis)
   response.set_cookie(

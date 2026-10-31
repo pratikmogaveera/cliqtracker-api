@@ -1,3 +1,4 @@
+from arq import ArqRedis
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +8,9 @@ from app.models.user import User
 from app.schemas.user import CreateUserRequest, UpdateUserRequest, UserResponse
 
 
-async def create_user(data: CreateUserRequest, db: AsyncSession) -> UserResponse:
+async def create_user(
+  data: CreateUserRequest, db: AsyncSession, arq_pool: ArqRedis
+) -> UserResponse:
   try:
     new_user = User(
       first_name=data.first_name,
@@ -20,6 +23,18 @@ async def create_user(data: CreateUserRequest, db: AsyncSession) -> UserResponse
 
     await db.commit()
     await db.refresh(new_user)
+
+    try:
+      await arq_pool.enqueue_job(
+        "send_email_job",
+        to=new_user.email,
+        first_name=new_user.first_name,
+        subject="Welcome to Cliqtracker",
+        template_name="welcome.html",
+        template_body={"first_name": new_user.first_name},
+      )
+    except Exception:
+      pass  # email failure must not block registration.
 
     return UserResponse.model_validate(new_user)
 
