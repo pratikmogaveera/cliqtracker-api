@@ -1,11 +1,12 @@
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-  DATABASE_URL: str
+  DATABASE_URL: SecretStr
   FRONTEND_URL: str
-  REDIS_URL: str
-  JWT_SECRET: str
+  REDIS_URL: SecretStr
+  JWT_SECRET: SecretStr
   JWT_ALGORITHM: str = "HS256"
   ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
   REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -20,6 +21,12 @@ class Settings(BaseSettings):
   REFILL_COOKIE: float = 0.5  # per sec
   REFILL_API_KEY: float = 1.0  # per sec
   REFILL_UNAUTH: float = 0.1  # per sec
+  MAIL_USERNAME: str
+  MAIL_PASSWORD: SecretStr
+  MAIL_FROM: str
+  MAIL_FROM_NAME: str
+  MAIL_SERVER: str
+  MAIL_PORT: int
 
   model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

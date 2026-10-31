@@ -28,7 +28,7 @@ def create_jwt_token(sub: str) -> str:
       "sub": sub,
       "exp": datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
     },
-    key=settings.JWT_SECRET,
+    key=settings.JWT_SECRET.get_secret_value(),
     algorithm=settings.JWT_ALGORITHM,
   )
 
@@ -36,7 +36,7 @@ def create_jwt_token(sub: str) -> str:
 def authenticate_jwt(token: str) -> str:
   payload = jwt.decode(
     token,
-    key=settings.JWT_SECRET,
+    key=settings.JWT_SECRET.get_secret_value(),
     algorithms=[settings.JWT_ALGORITHM],
   )
   token_data = Token(**payload)

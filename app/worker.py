@@ -10,9 +10,9 @@ from geoip2 import database
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
 from app.models import click_event, link, user  # noqa: F401
-from app.tasks import process_click
+from app.tasks import process_click, send_email_job
 
-REDIS_SETTINGS = RedisSettings.from_dsn(dsn=settings.REDIS_URL)
+REDIS_SETTINGS = RedisSettings.from_dsn(dsn=settings.REDIS_URL.get_secret_value())
 
 
 def _download_mmdb() -> None:
@@ -65,7 +65,7 @@ async def shutdown(ctx):
 
 
 class WorkerSettings:
-  functions = [func(process_click, max_tries=3)]
+  functions = [func(process_click, max_tries=3), func(send_email_job, max_tries=3)]
   on_startup = startup
   on_shutdown = shutdown
   redis_settings = REDIS_SETTINGS

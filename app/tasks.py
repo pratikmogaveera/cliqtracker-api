@@ -6,6 +6,7 @@ from user_agents import parse
 from user_agents.parsers import UserAgent
 
 from app.services.click_event import create_click_event
+from app.services.email import send_email
 
 
 def get_device_type(ua: UserAgent) -> str | None:
@@ -58,3 +59,20 @@ async def process_click(
       ip=ip,
       params=params,
     )
+
+
+async def send_email_job(
+  ctx,
+  to: str,
+  first_name: str,
+  subject: str,
+  template_name: str,
+  template_body: dict[str, Any] | None = None,
+) -> None:
+  await send_email(
+    to=to,
+    first_name=first_name,
+    subject=subject,
+    template_name=template_name,
+    template_body=template_body,
+  )

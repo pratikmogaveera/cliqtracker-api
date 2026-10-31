@@ -81,8 +81,13 @@ cliqtracker-api/
 │   │   ├── click_event.py        — click event operations
 │   │   ├── analytics.py          — analytics queries (summary, timeseries, geo, devices, referrers)
 │   │   ├── service_token.py      — service token CRUD + rotation logic
-│   │   └── error_log.py          — error log insert
-│   ├── tasks.py                  — ARQ job definitions (process_click)
+│   │   ├── error_log.py          — error log insert
+│   │   └── email.py              — generic send_email via fastapi-mail
+│   ├── templates/
+│   │   └── email/
+│   │       ├── base.html         — base email layout (Jinja2 block inheritance)
+│   │       └── welcome.html      — welcome email template
+│   ├── tasks.py                  — ARQ job definitions (process_click, send_email_job)
 │   └── worker.py                 — ARQ WorkerSettings, startup/shutdown
 ├── alembic/                      — migrations
 ├── Dockerfile
@@ -119,7 +124,7 @@ cliqtracker-api/
 - [x] GeoLite2 + `user-agents` integration
 - [x] `process_click` job
 - [x] Swap redirect to enqueue job
-- [x] Analytics endpoints (summary, timeseries, geo, devices, referrers)
+- [x] Analytics endpoints (summary, timeseries, geo, devices, referrers, params)
 
 ### Phase 4 — Advanced Features
 - [x] Link expiry
@@ -143,6 +148,7 @@ cliqtracker-api/
 - [x] `RequestValidationError` handler
 - [x] Generic 500 handler + `error_logs` table
 - [x] Query params tracking (`params` JSONB + GIN index)
+- [x] Email service (fastapi-mail + Gmail SMTP + ARQ job + Jinja2 templates)
 
 ## Resources
 
@@ -152,3 +158,4 @@ cliqtracker-api/
 - [ARQ docs](https://arq-docs.helpmanual.io/)
 - [MaxMind GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data)
 - [user-agents PyPI](https://pypi.org/project/user-agents/)
+- [fastapi-mail docs](https://sabuhish.github.io/fastapi-mail/)

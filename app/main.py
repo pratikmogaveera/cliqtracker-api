@@ -22,7 +22,7 @@ from app.routers.user import router as user_router
 from app.schemas.error_log import CreateErrorLog
 from app.services.error_log import create_error_log
 
-REDIS_SETTINGS = RedisSettings.from_dsn(settings.REDIS_URL)
+REDIS_SETTINGS = RedisSettings.from_dsn(settings.REDIS_URL.get_secret_value())
 
 origins = [settings.FRONTEND_URL]
 if settings.ENVIRONMENT == "dev":
@@ -31,7 +31,7 @@ if settings.ENVIRONMENT == "dev":
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-  redis = Redis.from_url(url=settings.REDIS_URL, decode_responses=True)
+  redis = Redis.from_url(url=settings.REDIS_URL.get_secret_value(), decode_responses=True)
   arq_pool = await create_pool(REDIS_SETTINGS)
 
   app.state.redis = redis
