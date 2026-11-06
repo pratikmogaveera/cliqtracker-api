@@ -43,7 +43,7 @@ async def authenticate_user_route(
   return ApiResponse(success=True, data=user_details, message="Logged in successfully!")
 
 
-@router.post("/logout", response_model=ApiResponse[None], dependencies=[CookieOnly])
+@router.post("/logout", response_model=ApiResponse[None])
 async def logout_user_route(
   request: Request, response: Response, redis: RedisClient
 ) -> ApiResponse[None]:
