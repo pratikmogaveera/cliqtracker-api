@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
   await arq_pool.aclose()
 
 
-app = FastAPI(lifespan=lifespan, redirect_slashes=False)
+app = FastAPI(title="Cliqtracker", lifespan=lifespan, redirect_slashes=False, swagger_ui_parameters={"displayRequestDuration": True})
 
 
 @app.exception_handler(HTTPException)
