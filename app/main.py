@@ -15,6 +15,7 @@ from app.core.security import authenticate_jwt
 from app.middleware import RateLimitMiddleware
 from app.routers.analytics import router as analytics_router
 from app.routers.auth import router as auth_router
+from app.routers.dashboard import router as dashboard_router
 from app.routers.link import router as link_router
 from app.routers.redirect import router as redirect_router
 from app.routers.service_token import router as service_token_router
@@ -43,7 +44,12 @@ async def lifespan(app: FastAPI):
   await arq_pool.aclose()
 
 
-app = FastAPI(title="Cliqtracker", lifespan=lifespan, redirect_slashes=False, swagger_ui_parameters={"displayRequestDuration": True})
+app = FastAPI(
+  title="Cliqtracker",
+  lifespan=lifespan,
+  redirect_slashes=False,
+  swagger_ui_parameters={"displayRequestDuration": True},
+)
 
 
 @app.exception_handler(HTTPException)
@@ -114,6 +120,7 @@ app.add_middleware(
 
 app.include_router(analytics_router)
 app.include_router(auth_router)
+app.include_router(dashboard_router)
 app.include_router(link_router)
 app.include_router(redirect_router)
 app.include_router(service_token_router)
