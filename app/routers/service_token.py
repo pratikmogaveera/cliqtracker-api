@@ -30,7 +30,7 @@ async def get_service_token_route(
   return ApiResponse(success=True, data=data, message="Service token details fetched successfully.")
 
 
-@router.get("/", response_model=ApiResponse[list[ServiceTokenResponse]], dependencies=[CookieOnly])
+@router.get("", response_model=ApiResponse[list[ServiceTokenResponse]], dependencies=[CookieOnly])
 async def get_service_tokens_route(
   user_id: CurrentUserId, db: DB
 ) -> ApiResponse[list[ServiceTokenResponse]]:
@@ -38,7 +38,7 @@ async def get_service_tokens_route(
   return ApiResponse(success=True, data=data, message="Service token list fetched successfully.")
 
 
-@router.post("/", response_model=ApiResponse[CreateServiceTokenResponse], dependencies=[CookieOnly])
+@router.post("", response_model=ApiResponse[CreateServiceTokenResponse], dependencies=[CookieOnly])
 async def create_service_token_route(
   payload: CreateServiceTokenRequest,
   user_id: CurrentUserId,

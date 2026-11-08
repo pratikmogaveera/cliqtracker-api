@@ -17,7 +17,7 @@ router = APIRouter(prefix="/links", tags=["Link"])
 
 
 @router.get(
-  "/",
+  "",
   response_model=ApiResponse[PaginatedResponse[LinkResponse]],
   dependencies=[RequiredScope("links:read")],
 )
@@ -44,7 +44,7 @@ async def get_link_route(link_id: str, user_id: CurrentUserId, db: DB) -> ApiRes
 
 
 @router.post(
-  "/",
+  "",
   response_model=ApiResponse[LinkResponse],
   dependencies=[RequiredScope("links:write")],
 )
