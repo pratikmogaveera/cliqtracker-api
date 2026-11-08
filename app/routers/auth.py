@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request, Response
 
 from app.core.config import settings
-from app.deps import DB, CookieOnly, RedisClient
+from app.deps import DB, RedisClient
 from app.schemas.common import ApiResponse
 from app.schemas.user import LoginUserRequest, UserResponse
 from app.services.auth import (
@@ -58,7 +58,7 @@ async def logout_user_route(
   return ApiResponse(success=True, message="Logged out successfully.")
 
 
-@router.post("/refresh", response_model=ApiResponse[None], dependencies=[CookieOnly])
+@router.post("/refresh", response_model=ApiResponse[None])
 async def refresh_access_token_route(
   request: Request, response: Response, redis: RedisClient
 ) -> ApiResponse[None]:
