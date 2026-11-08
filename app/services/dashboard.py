@@ -46,13 +46,13 @@ async def get_dashboard_summary(
 
   curr = (await db.execute(_window_query(current_start))).first()
   total_clicks, unique_clicks, countries_reached = curr if curr is not None else (0, 0, 0)
-  avg_clicks_per_day = total_clicks // period_int
+  avg_clicks_per_day = round(total_clicks / period_int, 1)
 
   prev = (await db.execute(_window_query(prev_start, end=current_start))).first()
   prev_total_clicks, prev_unique_clicks, prev_countries_reached = (
     prev if prev is not None else (0, 0, 0)
   )
-  prev_avg_clicks_per_day = prev_total_clicks // period_int
+  prev_avg_clicks_per_day = round(prev_total_clicks / period_int, 1)
 
   return DashboardSummaryResponse(
     total_clicks=total_clicks,
