@@ -27,7 +27,7 @@ async def get_redirect_url(
     raw_response = await db.execute(query)
     response = raw_response.scalar_one_or_none()
     if response is None:
-      raise HTTPException(404, "Link not found.")
+      return f"{settings.FRONTEND_URL}/link-error/not-found"
 
     redirect_data = CachedLinkData(
       link_id=response.id,
@@ -45,12 +45,12 @@ async def get_redirect_url(
     redirect_data = CachedLinkData.model_validate_json(cached_data_string)
 
   if not redirect_data.is_active:
-    raise HTTPException(410, "The link has been deactivated.")
+    return f"{settings.FRONTEND_URL}/link-error/deactivated"
 
   if redirect_data.expiry_at is not None:
     now = datetime.now(UTC)
     if now > redirect_data.expiry_at:
-      raise HTTPException(status_code=410, detail="The link has expired.")
+      return f"{settings.FRONTEND_URL}/link-error/expired"
 
   if redirect_data.is_protected:
     return f"{settings.FRONTEND_URL}/unlock/{short_code}"

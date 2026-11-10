@@ -149,6 +149,7 @@ cliqtracker-api/
 - [x] Generic 500 handler + `error_logs` table
 - [x] Query params tracking (`params` JSONB + GIN index)
 - [x] Email service (fastapi-mail + Gmail SMTP + ARQ job + Jinja2 templates)
+- [x] Friendly redirect for broken links — 404/410 cases redirect to `{FRONTEND_URL}/link-error/{reason}` instead of returning JSON errors
 
 ## Resources
 
