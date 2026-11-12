@@ -7,7 +7,7 @@ import qrcode.constants
 from fastapi import HTTPException
 from nanoid import generate
 from redis.asyncio import Redis
-from sqlalchemy import func, select
+from sqlalchemy import exists, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +18,7 @@ from app.models.link import Link
 from app.schemas.common import PaginatedResponse
 from app.schemas.link import (
   CachedLinkData,
+  CheckCustomSlugResponse,
   CreateLinkRequest,
   LinkResponse,
   QRCodeImageResponse,
@@ -179,3 +180,10 @@ async def generate_link_qr_code(
 
   qr_base64_string = base64.b64encode(buffered.getvalue()).decode("utf-8")
   return QRCodeImageResponse(image=qr_base64_string)
+
+
+async def check_slug_availability(code: str, db: AsyncSession) -> CheckCustomSlugResponse:
+  query = select(exists().where(Link.short_code == code))
+  taken = bool((await db.execute(query)).scalar())
+
+  return CheckCustomSlugResponse(is_available=not taken)

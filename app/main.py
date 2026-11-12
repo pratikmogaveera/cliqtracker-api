@@ -99,7 +99,6 @@ async def internal_server_error_handler(request: Request, exc: Exception):
     try:
       await create_error_log(data=log_data, db=db)
     except Exception:
-      # TODO: email notification
       pass
 
   return JSONResponse(
@@ -111,10 +110,10 @@ async def internal_server_error_handler(request: Request, exc: Exception):
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=origins,  # List of allowed origins
-  allow_credentials=True,  # Support cookies/auth headers
-  allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
-  allow_headers=["*"],  # Allow all request headers
+  allow_origins=origins,
+  allow_credentials=True,
+  allow_methods=["*"],
+  allow_headers=["*"],
 )
 
 

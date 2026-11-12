@@ -1,10 +1,17 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from app.core.config import settings
 from app.deps import DB, CurrentUserId, RedisClient, RequiredScope
 from app.schemas.common import ApiResponse, PaginatedResponse
-from app.schemas.link import CreateLinkRequest, LinkResponse, QRCodeImageResponse, UpdateLinkRequest
+from app.schemas.link import (
+  CheckCustomSlugResponse,
+  CreateLinkRequest,
+  LinkResponse,
+  QRCodeImageResponse,
+  UpdateLinkRequest,
+)
 from app.services.link import (
+  check_slug_availability,
   create_link,
   delete_link,
   generate_link_qr_code,
@@ -30,6 +37,22 @@ async def get_links_route(
   paginated_links = await get_links(user_id=user_id, db=db, page=page, limit=limit)
   return ApiResponse(
     success=True, message="Link details fetched successfully.", data=paginated_links
+  )
+
+
+@router.get(
+  "/check-slug",
+  response_model=ApiResponse[CheckCustomSlugResponse],
+  dependencies=[RequiredScope("links:read")],
+)
+async def check_slug_availability_route(
+  db: DB, code: str = Query(min_length=4, max_length=30, pattern=r"^[a-zA-Z0-9_-]+$")
+) -> ApiResponse[CheckCustomSlugResponse]:
+  result = await check_slug_availability(code=code, db=db)
+  return ApiResponse(
+    success=True,
+    data=result,
+    message="Custom slug availability checked successfully.",
   )
 
 

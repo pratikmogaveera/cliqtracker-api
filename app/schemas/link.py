@@ -64,3 +64,7 @@ class CachedLinkData(BaseModel):
 
 class QRCodeImageResponse(BaseModel):
   image: str
+
+
+class CheckCustomSlugResponse(BaseModel):
+  is_available: bool
